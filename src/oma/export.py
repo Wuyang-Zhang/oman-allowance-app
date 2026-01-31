@@ -12,6 +12,8 @@ class Table:
     name: str
     rows: List[Dict[str, str]]
     headers: List[str]
+    column_widths: List[float] | None = None
+    freeze_header: bool = True
 
 
 def write_csv(path: str, rows: Iterable[Dict[str, str]], headers: Sequence[str]) -> None:
@@ -46,6 +48,19 @@ def _build_sheets_and_shared_strings(tables: Sequence[Table]) -> Tuple[List[str]
         row_index = 1
         headers = table.headers
         rows = [dict(zip(headers, headers))] + list(table.rows)
+        cols_xml = ""
+        if table.column_widths:
+            cols_parts = []
+            for idx, width in enumerate(table.column_widths, start=1):
+                cols_parts.append(f"<col min=\"{idx}\" max=\"{idx}\" width=\"{width}\" customWidth=\"1\"/>")
+            cols_xml = f"<cols>{''.join(cols_parts)}</cols>"
+        sheet_views = ""
+        if table.freeze_header:
+            sheet_views = (
+                "<sheetViews><sheetView workbookViewId=\"0\">"
+                "<pane ySplit=\"1\" topLeftCell=\"A2\" activePane=\"bottomLeft\" state=\"frozen\"/>"
+                "</sheetView></sheetViews>"
+            )
         for row in rows:
             cells_xml = []
             col_index = 1
@@ -63,7 +78,7 @@ def _build_sheets_and_shared_strings(tables: Sequence[Table]) -> Tuple[List[str]
         sheet_xml = (
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
             "<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">"
-            f"<sheetData>{''.join(rows_xml)}</sheetData>"
+            f"{sheet_views}{cols_xml}<sheetData>{''.join(rows_xml)}</sheetData>"
             "</worksheet>"
         )
         sheets_xml.append(sheet_xml)

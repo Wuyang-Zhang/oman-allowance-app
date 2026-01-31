@@ -16,7 +16,7 @@ from ..config import AllowanceConfig
 from ..models import DegreeLevel, Status
 from ..storage import db
 from ..storage.backup import create_backup, restore_backup
-from ..gui.exporter import export_records
+from ..gui.exporter import export_monthly_settlement_excel, export_records
 from ..gui.i18n import Translator
 from ..gui.settings import load_settings, save_settings
 from ..gui.settlement import compute_monthly_settlement, parse_settlement_month, same_month
@@ -43,10 +43,11 @@ class Backend(QObject):
 
     @Slot(result=str)
     def get_state(self) -> str:
+        settings = load_settings()
+        settlement_month = settings.get("settlement_month") or date.today().strftime("%Y-%m")
         cfg = db.get_latest_config(self.conn)
         students = db.list_students(self.conn)
         counts = db.student_counts(self.conn)
-        settlement_month = date.today().strftime("%Y-%m")
         run = db.get_latest_run_for_month(self.conn, settlement_month)
         special = self._special_list(settlement_month)
         records = db.fetch_records_for_run(self.conn, run.run_id) if run else []
@@ -62,6 +63,7 @@ class Backend(QObject):
                 "language": self._lang(),
                 "records": [r.__dict__ for r in records],
                 "per_student": per_student,
+                "runs": [asdict(r) for r in db.list_runs(self.conn)],
             },
             ensure_ascii=False,
         )
@@ -72,6 +74,14 @@ class Backend(QObject):
         settings = load_settings()
         settings["language"] = lang
         save_settings(settings)
+        return json.dumps({"ok": True})
+
+    @Slot(str, result=str)
+    def set_settlement_month(self, value: str) -> str:
+        if value:
+            settings = load_settings()
+            settings["settlement_month"] = value
+            save_settings(settings)
         return json.dumps({"ok": True})
 
     @Slot(result=str)
@@ -150,6 +160,27 @@ class Backend(QObject):
         ]
         return ",".join(headers)
 
+    @Slot(result=str)
+    def export_csv_template(self) -> str:
+        settings = load_settings()
+        export_dir = self._export_dir(settings, key="csv_dir")
+        caption = self.translator.t("dialog.save_csv")
+        filter_text = self.translator.t("dialog.filter.csv")
+        target, _ = QFileDialog.getSaveFileName(
+            None, caption, str(export_dir / "students_template.csv"), filter_text
+        )
+        if not target:
+            return json.dumps({"ok": True, "cancelled": True})
+        if not target.lower().endswith(".csv"):
+            target = f"{target}.csv"
+        try:
+            Path(target).write_text(self.get_csv_template() + "\n", encoding="utf-8")
+        except Exception:
+            return json.dumps({"ok": False, "error": "save_failed"}, ensure_ascii=False)
+        settings["csv_dir"] = str(Path(target).parent)
+        save_settings(settings)
+        return json.dumps({"ok": True})
+
     @Slot(str, result=str)
     def save_config(self, payload: str) -> str:
         data = json.loads(payload)
@@ -176,7 +207,8 @@ class Backend(QObject):
         cfg_row = db.get_latest_config(self.conn)
         config = db.config_row_to_model(cfg_row)
         students = db.list_students(self.conn)
-        settlement_date = parse_settlement_month(settlement_month)
+        safe_month = self._normalize_month(settlement_month)
+        settlement_date = parse_settlement_month(safe_month)
         baggage = set([s for s in baggage_ids.split(",") if s])
         withdrawal = set([s for s in withdrawal_ids.split(",") if s])
 
@@ -187,12 +219,12 @@ class Backend(QObject):
             baggage_pay_ids=baggage,
             withdrawal_living_ids=withdrawal,
         )
-        run = db.create_run(self.conn, cfg_row.version, settlement_month, config.fx_rate_usd_to_cny)
+        run = db.create_run(self.conn, cfg_row.version, safe_month, config.fx_rate_usd_to_cny)
         if result.records:
-            db.save_records(self.conn, run.run_id, settlement_month, result.records, config.fx_rate_usd_to_cny)
+            db.save_records(self.conn, run.run_id, safe_month, result.records, config.fx_rate_usd_to_cny)
             for r in result.records:
                 if r.allowance_type.value == "ExcessBaggage":
-                    db.record_baggage_paid(self.conn, r.student_id, run.run_id, settlement_month)
+                    db.record_baggage_paid(self.conn, r.student_id, run.run_id, safe_month)
         return json.dumps({"ok": True, "run_id": run.run_id, "warnings": result.warnings}, ensure_ascii=False)
 
     @Slot(str, result=str)
@@ -210,7 +242,7 @@ class Backend(QObject):
 
     @Slot(str, str, result=str)
     def export_settlement(self, settlement_month: str, fmt: str) -> str:
-        run = db.get_latest_run_for_month(self.conn, settlement_month)
+        run = db.get_latest_run_for_month(self.conn, self._normalize_month(settlement_month))
         if not run:
             return json.dumps({"ok": False})
         records = db.fetch_records_for_run(self.conn, run.run_id)
@@ -220,13 +252,64 @@ class Backend(QObject):
             Path(target).write_bytes(Path(temp_path).read_bytes())
         return json.dumps({"ok": True})
 
+    @Slot(str, str, result=str)
+    def export_settlement_excel(self, settlement_month: str, run_id: str) -> str:
+        run = None
+        if run_id:
+            try:
+                run = db.get_run(self.conn, int(run_id))
+            except Exception:
+                run = None
+        if run is None:
+            run = db.get_latest_run_for_month(self.conn, self._normalize_month(settlement_month))
+        if not run:
+            return json.dumps({"ok": False, "error": "no_run"})
+        records = db.fetch_records_for_run(self.conn, run.run_id)
+        students = db.list_students(self.conn)
+        config_row = db.get_config_by_version(self.conn, run.config_version)
+        temp_path = export_monthly_settlement_excel(
+            run=run,
+            config_row=config_row,
+            students=students,
+            records=records,
+            translator=self.translator,
+        )
+        filename = f"OmanSettlement_{run.settlement_month}_{run.run_id}.xlsx"
+        settings = load_settings()
+        export_dir = self._export_dir(settings, key="export_dir")
+        default_path = export_dir / filename
+        caption = self.translator.t("dialog.save_excel")
+        filter_text = self.translator.t("dialog.filter.xlsx")
+        target, _ = QFileDialog.getSaveFileName(None, caption, str(default_path), filter_text)
+        if not target:
+            return json.dumps({"ok": True, "cancelled": True})
+        if not target.lower().endswith(".xlsx"):
+            target = f"{target}.xlsx"
+        try:
+            Path(target).write_bytes(Path(temp_path).read_bytes())
+        except Exception:
+            return json.dumps({"ok": False, "error": "save_failed"}, ensure_ascii=False)
+        settings["export_dir"] = str(Path(target).parent)
+        save_settings(settings)
+        return json.dumps({"ok": True})
+
+    @Slot(str, result=str)
+    def delete_run(self, run_id: str) -> str:
+        try:
+            db.delete_run(self.conn, int(run_id))
+        except Exception:
+            return json.dumps({"ok": False}, ensure_ascii=False)
+        return json.dumps({"ok": True})
+
     @Slot(str, result=str)
     def get_special(self, settlement_month: str) -> str:
-        return json.dumps({"ok": True, "special": self._special_list(settlement_month)}, ensure_ascii=False)
+        safe_month = self._normalize_month(settlement_month)
+        return json.dumps({"ok": True, "special": self._special_list(safe_month)}, ensure_ascii=False)
 
     @Slot(str, result=str)
     def get_run_info(self, settlement_month: str) -> str:
-        run = db.get_latest_run_for_month(self.conn, settlement_month)
+        safe_month = self._normalize_month(settlement_month)
+        run = db.get_latest_run_for_month(self.conn, safe_month)
         return json.dumps({"ok": True, "run": asdict(run) if run else None}, ensure_ascii=False)
 
     @Slot(result=str)
@@ -257,6 +340,36 @@ class Backend(QObject):
                     item["default_checked"] = bool(cfg.withdrawn_living_default)
                     withdrawal.append(item)
         return {"baggage": baggage, "withdrawal": withdrawal}
+
+    def _export_dir(self, settings: Dict[str, str], key: str) -> Path:
+        last_dir = settings.get(key)
+        if last_dir:
+            path = Path(last_dir)
+            if path.exists():
+                return path
+        home = Path.home()
+        for name in ("Desktop", "Documents"):
+            candidate = home / name
+            if candidate.exists():
+                return candidate
+        return home
+
+    def _normalize_month(self, value: str) -> str:
+        if value:
+            try:
+                parse_settlement_month(value)
+                return value
+            except Exception:
+                pass
+        settings = load_settings()
+        saved = settings.get("settlement_month")
+        if saved:
+            try:
+                parse_settlement_month(saved)
+                return saved
+            except Exception:
+                pass
+        return date.today().strftime("%Y-%m")
 
     def _student_to_dict(self, student: db.StudentRow) -> Dict[str, str]:
         return {

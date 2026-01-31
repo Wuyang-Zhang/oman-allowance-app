@@ -60,6 +60,7 @@ function loadTranslations(dict) {
   setText("app-title", t("app.title"));
   setText("settlement-label", t("dashboard.settlement_month"));
   setText("run-settlement", t("dashboard.run"));
+  setText("jump-current", t("dashboard.jump_current"));
   setText("run-id-label", t("dashboard.run_id"));
   setText("run-fx-label", t("dashboard.fx_rate"));
   setText("run-config-label", t("dashboard.config_version"));
@@ -100,8 +101,12 @@ function loadTranslations(dict) {
   setText("cfg-save", t("config.save"));
 
   setText("report-load", t("reports.load"));
+  setText("report-export-full", t("reports.export_full"));
+  setText("report-clear", t("reports.clear_run"));
   setText("reports-total-title", t("reports.per_student"));
   setText("reports-records-title", t("reports.records"));
+  setPlaceholder("report-run-id", t("reports.run_id"));
+  setText("run-history-title", t("reports.history"));
 
   setText("backup-create", t("backup.create"));
   setText("backup-restore", t("backup.restore"));
@@ -294,6 +299,29 @@ function renderReports(records, perStudent) {
   });
 }
 
+function renderRunHistory(runs) {
+  const thead = document.querySelector("#run-history-table thead tr");
+  thead.innerHTML = "";
+  ["export.header.run_id", "export.header.settlement_month", "export.header.fx_rate", "export.header.config_version", "reports.action"].forEach(k => {
+    const th = document.createElement("th");
+    th.textContent = t(k);
+    thead.appendChild(th);
+  });
+  const tbody = document.querySelector("#run-history-table tbody");
+  tbody.innerHTML = "";
+  runs.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${r.run_id}</td>
+      <td>${r.settlement_month}</td>
+      <td>${r.fx_rate}</td>
+      <td>${r.config_version}</td>
+      <td><button class="ghost" data-run-delete="${r.run_id}">${t("reports.delete_run")}</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 function currentSelectedStudentId() {
   const row = document.querySelector("#students-table tbody tr.selected");
   return row ? row.dataset.studentId : null;
@@ -382,6 +410,18 @@ function bindEvents() {
 
   document.getElementById("settlement-month").addEventListener("change", async (e) => {
     const month = e.target.value;
+    await backend.set_settlement_month(month);
+    const res = JSON.parse(await backend.get_special(month));
+    if (res.ok) renderSpecial(res.special);
+    const runInfo = JSON.parse(await backend.get_run_info(month));
+    updateRunInfo(runInfo.run || null);
+  });
+
+  document.getElementById("jump-current").addEventListener("click", async () => {
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    document.getElementById("settlement-month").value = month;
+    await backend.set_settlement_month(month);
     const res = JSON.parse(await backend.get_special(month));
     if (res.ok) renderSpecial(res.special);
     const runInfo = JSON.parse(await backend.get_run_info(month));
@@ -429,12 +469,14 @@ function bindEvents() {
   });
 
   document.getElementById("student-template").addEventListener("click", async () => {
-    const header = await backend.get_csv_template();
-    const blob = new Blob([header + "\n"], { type: "text/csv" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "students_template.csv";
-    a.click();
+    const res = JSON.parse(await backend.export_csv_template());
+    if (!res.ok) {
+      if (res.error === "save_failed") {
+        alert(t("error.export_failed"));
+      }
+    } else if (!res.cancelled) {
+      alert(t("reports.export_saved"));
+    }
   });
 
   document.getElementById("student-add").addEventListener("click", () => openStudentDialog());
@@ -481,9 +523,39 @@ function bindEvents() {
     if (res.ok) {
       renderReports(res.records, res.per_student);
       document.getElementById("report-info").textContent = `${t("dashboard.run_id")}: ${res.run.run_id} | ${t("dashboard.fx_rate")}: ${res.run.fx_rate}`;
+      document.getElementById("report-run-id").value = res.run.run_id;
     } else {
       alert(t("error.no_run"));
     }
+  });
+
+  document.getElementById("report-export-full").addEventListener("click", async () => {
+    const month = document.getElementById("report-month").value;
+    const runId = document.getElementById("report-run-id").value;
+    const res = JSON.parse(await backend.export_settlement_excel(month, runId));
+    if (!res.ok) {
+      if (res.error === "save_failed") {
+        alert(t("error.export_failed"));
+      } else {
+        alert(t("error.no_run"));
+      }
+      return;
+    }
+    if (!res.cancelled) {
+      alert(t("reports.export_saved"));
+    }
+  });
+
+  document.getElementById("report-clear").addEventListener("click", async () => {
+    const runId = document.getElementById("report-run-id").value;
+    if (!runId) return;
+    if (!confirm(t("confirm.clear_run"))) return;
+    const res = JSON.parse(await backend.delete_run(runId));
+    if (!res.ok) {
+      alert(t("error.no_run"));
+      return;
+    }
+    await loadState();
   });
 
   document.getElementById("backup-create").addEventListener("click", async () => {
@@ -519,6 +591,19 @@ function bindEvents() {
     if (!row) return;
     document.querySelectorAll("#students-table tbody tr").forEach(r => r.classList.remove("selected"));
     row.classList.add("selected");
+  });
+
+  document.querySelector("#run-history-table tbody").addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-run-delete]");
+    if (!btn) return;
+    const runId = btn.dataset.runDelete;
+    if (!confirm(t("confirm.delete_run"))) return;
+    const res = JSON.parse(await backend.delete_run(runId));
+    if (!res.ok) {
+      alert(t("error.no_run"));
+      return;
+    }
+    await loadState();
   });
 
   document.getElementById("form-status").addEventListener("change", syncDateControls);
@@ -581,9 +666,11 @@ async function loadState() {
 
   updateCounts(state.counts || {});
   updateRunInfo(state.run || null);
+  document.getElementById("report-run-id").value = state.run ? state.run.run_id : "";
   renderStudents(state.students || []);
   renderSpecial(state.special || {baggage: [], withdrawal: []});
   renderReports(state.records || [], state.per_student || []);
+  renderRunHistory(state.runs || []);
 }
 
 new QWebChannel(qt.webChannelTransport, function(channel) {

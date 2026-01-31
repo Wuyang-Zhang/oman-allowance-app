@@ -185,6 +185,14 @@ def get_latest_config(conn: sqlite3.Connection) -> ConfigRow:
     return ConfigRow(**dict(row))
 
 
+def get_config_by_version(conn: sqlite3.Connection, version: int) -> ConfigRow:
+    cur = conn.execute("SELECT * FROM configs WHERE version = ?", (version,))
+    row = cur.fetchone()
+    if not row:
+        raise RuntimeError("No config found")
+    return ConfigRow(**dict(row))
+
+
 def save_config(conn: sqlite3.Connection, config: AllowanceConfig, withdrawn_living_default: bool) -> ConfigRow:
     updated_at = datetime.utcnow().isoformat(timespec="seconds") + "Z"
     row = (
@@ -327,6 +335,18 @@ def get_latest_run_for_month(conn: sqlite3.Connection, settlement_month: str) ->
     if not row:
         return None
     return RunRow(**dict(row))
+
+
+def list_runs(conn: sqlite3.Connection) -> List[RunRow]:
+    cur = conn.execute("SELECT * FROM settlement_runs ORDER BY run_id DESC")
+    return [RunRow(**dict(row)) for row in cur.fetchall()]
+
+
+def delete_run(conn: sqlite3.Connection, run_id: int) -> None:
+    conn.execute("DELETE FROM allowance_records WHERE run_id = ?", (run_id,))
+    conn.execute("DELETE FROM baggage_payments WHERE run_id = ?", (run_id,))
+    conn.execute("DELETE FROM settlement_runs WHERE run_id = ?", (run_id,))
+    conn.commit()
 
 
 def save_records(conn: sqlite3.Connection, run_id: int, settlement_month: str, records: Iterable[AllowanceRecord], fx_rate: Decimal) -> None:

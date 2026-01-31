@@ -33,6 +33,7 @@
         <div class="field">
           <label id="settlement-label"></label>
           <input type="month" id="settlement-month" />
+          <button id="jump-current"></button>
         </div>
         <div class="field">
           <button id="run-settlement"></button>
@@ -122,7 +123,17 @@
       <div class="card actions">
         <input type="month" id="report-month" />
         <button id="report-load"></button>
+        <input id="report-run-id" />
+        <button id="report-export-full"></button>
+        <button id="report-clear"></button>
         <div class="muted" id="report-info"></div>
+      </div>
+      <div class="card">
+        <h3 id="run-history-title"></h3>
+        <table id="run-history-table">
+          <thead><tr></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
       <div class="card">
         <h3 id="reports-total-title"></h3>
