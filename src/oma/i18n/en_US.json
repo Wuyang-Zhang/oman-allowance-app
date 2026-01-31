@@ -3,17 +3,14 @@
   "lang.zh": "中文",
   "lang.en": "English",
   "lang.code": "en-US",
-
   "common.save": "Save",
   "common.cancel": "Cancel",
-
   "tab.dashboard": "Dashboard",
   "tab.students": "Students",
   "tab.config": "Config",
   "tab.reports": "Settlement Results",
   "tab.backup": "Backup/Restore",
   "tab.about": "About",
-
   "dashboard.settlement_month": "Settlement month",
   "dashboard.run": "Run settlement",
   "dashboard.jump_current": "Jump to current month",
@@ -26,7 +23,6 @@
   "dashboard.in_study": "In-study",
   "dashboard.graduated": "Graduated",
   "dashboard.withdrawn": "Withdrawn",
-
   "special.title": "Special Payments This Month",
   "special.hint": "Students listed below have special payments available for this month. Please confirm.",
   "special.type": "Type",
@@ -36,7 +32,6 @@
   "special.baggage_toggle": "Pay baggage allowance this month",
   "special.withdrawal_toggle": "Pay living allowance this month",
   "special.none": "No special payments for this month",
-
   "students.title": "Students",
   "students.add": "Add",
   "students.edit": "Edit",
@@ -46,7 +41,6 @@
   "students.template": "Download CSV template",
   "students.saved": "Saved",
   "students.last_saved": "Last saved",
-
   "field.student_id": "Student ID",
   "field.name": "Name",
   "field.degree": "Degree",
@@ -57,18 +51,15 @@
   "field.empty_none": "Empty/None",
   "hint.graduation": "Graduation date is required only after graduation.",
   "hint.withdrawal": "Withdrawal date is required only for withdrawn students.",
-
   "status.in_study": "In-study",
   "status.graduated": "Graduated",
   "status.withdrawn": "Withdrawn",
-
   "degree.bachelor": "Bachelor",
   "degree.master": "Master",
   "degree.phd": "PhD",
   "allowance.living": "Living allowance",
   "allowance.study": "Study allowance",
   "allowance.baggage": "Baggage allowance",
-
   "config.title": "Configuration",
   "config.living": "Living allowance (USD)",
   "config.study": "Study allowance (USD)",
@@ -81,7 +72,6 @@
   "config.withdrawn_default": "Default pay living allowance in withdrawal month",
   "config.save": "Save config",
   "config.saved": "Configuration saved",
-
   "reports.title": "Settlement Results",
   "reports.export_csv": "Export CSV",
   "reports.export_xlsx": "Export Excel",
@@ -96,17 +86,14 @@
   "reports.records": "Record lines",
   "reports.total_cny": "Total (CNY)",
   "reports.load": "Load",
-
   "backup.title": "Backup/Restore",
   "backup.create": "Create backup",
   "backup.restore": "Restore",
   "backup.restore_replace": "Replace",
   "backup.restore_merge": "Merge",
   "backup.pre_backup": "Pre-restore backup created",
-
   "about.title": "About",
   "about.version": "Version",
-
   "export.header.run_id": "Run ID",
   "export.header.settlement_month": "Settlement month",
   "export.header.student_id": "Student ID",
@@ -144,7 +131,6 @@
   "export.header.rounding_policy": "Rounding policy",
   "export.flag.baggage": "Baggage allowance",
   "export.flag.withdrawal": "Withdrawal living allowance",
-
   "error.invalid_date": "Invalid date format",
   "error.export_failed": "Save failed. Check file permissions or if the file is in use.",
   "error.csv_header_mismatch": "CSV header mismatch. Please use the standard template. Expected: {expected}",
@@ -165,5 +151,37 @@
   "dialog.save_excel": "Save Excel file",
   "dialog.filter.xlsx": "Excel files (*.xlsx)",
   "dialog.save_csv": "Save CSV template",
-  "dialog.filter.csv": "CSV files (*.csv)"
+  "dialog.filter.csv": "CSV files (*.csv)",
+  "appbar.help": "Help",
+  "appbar.month": "Settlement Month",
+  "appbar.last_run": "Latest Run",
+  "appbar.no_run": "No settlement yet",
+  "page.dashboard.desc": "Run settlements and review special payouts for the month.",
+  "page.students.desc": "Manage student records and import/export data.",
+  "page.config.desc": "Adjust allowance amounts, FX rate, and policy switches.",
+  "page.reports.desc": "Review settlement results and records.",
+  "page.backup.desc": "Create or restore backups of the database.",
+  "page.about.desc": "Version and system information.",
+  "empty.students.title": "No students yet",
+  "empty.students.hint": "Add a student or import a CSV to get started.",
+  "empty.students.action": "Import CSV",
+  "empty.special.title": "No special payouts",
+  "empty.special.hint": "No graduation or withdrawal payouts for this month.",
+  "empty.reports.title": "No settlement results",
+  "empty.reports.hint": "Run settlement to generate results.",
+  "empty.reports.action": "Run settlement",
+  "loading.title": "Loading",
+  "loading.hint": "Please wait...",
+  "config.section.standard": "Standard Allowances",
+  "config.section.usd": "USD Allowances and FX Rate",
+  "config.section.policy": "Policy Switches",
+  "config.hint.living": "Monthly living allowance by degree.",
+  "config.hint.study": "Annual study allowance (October only).",
+  "config.hint.baggage": "One-time baggage allowance after graduation.",
+  "config.hint.fx_rate": "USD to CNY exchange rate.",
+  "config.hint.policy": "Controls issuance for early graduation or withdrawal.",
+  "config.hint.withdrawn": "Default living allowance for withdrawal month.",
+  "unit.usd_per_month": "USD per month",
+  "unit.usd": "USD",
+  "unit.fx_rate": "USD -> CNY"
 }

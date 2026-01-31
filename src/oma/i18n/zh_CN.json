@@ -3,17 +3,14 @@
   "lang.zh": "中文",
   "lang.en": "English",
   "lang.code": "zh-CN",
-
   "common.save": "保存",
   "common.cancel": "取消",
-
   "tab.dashboard": "仪表盘",
   "tab.students": "学生",
   "tab.config": "配置",
   "tab.reports": "结算结果",
   "tab.backup": "备份/恢复",
   "tab.about": "关于",
-
   "dashboard.settlement_month": "结算月份",
   "dashboard.run": "运行结算",
   "dashboard.jump_current": "跳到本月",
@@ -26,7 +23,6 @@
   "dashboard.in_study": "在读人数",
   "dashboard.graduated": "毕业人数",
   "dashboard.withdrawn": "退学人数",
-
   "special.title": "本月特殊发放",
   "special.hint": "以下为本月可选择的特殊发放项目，请确认是否发放。",
   "special.type": "类型",
@@ -36,7 +32,6 @@
   "special.baggage_toggle": "本月发放行李补助",
   "special.withdrawal_toggle": "本月发放生活补助",
   "special.none": "本月无特殊发放",
-
   "students.title": "学生管理",
   "students.add": "新增",
   "students.edit": "编辑",
@@ -46,7 +41,6 @@
   "students.template": "下载 CSV 模板",
   "students.saved": "已保存",
   "students.last_saved": "上次保存",
-
   "field.student_id": "学号",
   "field.name": "姓名",
   "field.degree": "学位",
@@ -57,18 +51,15 @@
   "field.empty_none": "未填写/无",
   "hint.graduation": "在读学生无需填写毕业日期",
   "hint.withdrawal": "仅退学学生需要填写退学日期",
-
   "status.in_study": "在读",
   "status.graduated": "毕业",
   "status.withdrawn": "退学",
-
   "degree.bachelor": "本科",
   "degree.master": "硕士",
   "degree.phd": "博士",
   "allowance.living": "生活补助",
   "allowance.study": "学习补助",
   "allowance.baggage": "行李补助",
-
   "config.title": "配置",
   "config.living": "生活补助（USD）",
   "config.study": "学习补助（USD）",
@@ -81,7 +72,6 @@
   "config.withdrawn_default": "退学当月生活补助默认发放",
   "config.save": "保存配置",
   "config.saved": "配置已保存",
-
   "reports.title": "结算结果",
   "reports.export_csv": "导出 CSV",
   "reports.export_xlsx": "导出 Excel",
@@ -96,17 +86,14 @@
   "reports.records": "明细记录",
   "reports.total_cny": "合计金额（CNY）",
   "reports.load": "加载",
-
   "backup.title": "备份/恢复",
   "backup.create": "一键备份",
   "backup.restore": "恢复",
   "backup.restore_replace": "替换恢复",
   "backup.restore_merge": "合并恢复",
   "backup.pre_backup": "已自动生成恢复前备份",
-
   "about.title": "关于",
   "about.version": "版本",
-
   "export.header.run_id": "运行编号",
   "export.header.settlement_month": "结算月份",
   "export.header.student_id": "学号",
@@ -144,7 +131,6 @@
   "export.header.rounding_policy": "舍入方式",
   "export.flag.baggage": "行李补助",
   "export.flag.withdrawal": "退学当月补助",
-
   "error.invalid_date": "日期格式错误",
   "error.export_failed": "保存失败，请检查权限或文件是否被占用",
   "error.csv_header_mismatch": "CSV 表头不匹配，请使用标准模板。期望表头：{expected}",
@@ -165,5 +151,37 @@
   "dialog.save_excel": "保存 Excel 文件",
   "dialog.filter.xlsx": "Excel 文件 (*.xlsx)",
   "dialog.save_csv": "保存 CSV 模板",
-  "dialog.filter.csv": "CSV 文件 (*.csv)"
+  "dialog.filter.csv": "CSV 文件 (*.csv)",
+  "appbar.help": "帮助",
+  "appbar.month": "结算月份",
+  "appbar.last_run": "最近结算",
+  "appbar.no_run": "暂无结算",
+  "page.dashboard.desc": "运行结算并查看本月特殊发放。",
+  "page.students.desc": "管理学生信息，支持导入导出。",
+  "page.config.desc": "调整补助金额、汇率与规则开关。",
+  "page.reports.desc": "查看结算结果与明细记录。",
+  "page.backup.desc": "创建或恢复数据库备份。",
+  "page.about.desc": "系统版本与说明信息。",
+  "empty.students.title": "暂无学生",
+  "empty.students.hint": "请先新增或导入学生信息。",
+  "empty.students.action": "导入 CSV",
+  "empty.special.title": "暂无特殊发放",
+  "empty.special.hint": "本月无毕业或退学发放项目。",
+  "empty.reports.title": "暂无结算结果",
+  "empty.reports.hint": "请先运行结算生成结果。",
+  "empty.reports.action": "运行结算",
+  "loading.title": "加载中",
+  "loading.hint": "请稍候...",
+  "config.section.standard": "标准补助",
+  "config.section.usd": "USD 补助与汇率",
+  "config.section.policy": "规则开关",
+  "config.hint.living": "按学位设置每月生活补助。",
+  "config.hint.study": "每年 10 月发放的学习补助。",
+  "config.hint.baggage": "毕业后一次性行李补助。",
+  "config.hint.fx_rate": "美元兑人民币的换算汇率。",
+  "config.hint.policy": "影响 10 月前毕业/退学是否发放。",
+  "config.hint.withdrawn": "退学当月生活补助默认发放。",
+  "unit.usd_per_month": "USD / 月",
+  "unit.usd": "USD",
+  "unit.fx_rate": "USD -> CNY"
 }
