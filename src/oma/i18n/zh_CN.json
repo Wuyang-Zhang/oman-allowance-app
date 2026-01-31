@@ -194,5 +194,10 @@
   "students.duplicate_body": "该学号已存在。是否覆盖？\n是：覆盖\n否：进入编辑\n取消：不操作",
   "students.duplicate_overwrite": "覆盖",
   "students.duplicate_edit": "进入编辑",
-  "students.duplicate_cancel": "取消"
+  "students.duplicate_cancel": "取消",
+  "backup.desc": "备份会打包学生、配置、结算运行、明细记录与行李补助记录。",
+  "backup.mode_replace": "替换恢复：清空当前数据后再从备份恢复。",
+  "backup.mode_merge": "合并恢复：保留当前数据，并从备份追加。",
+  "backup.path_label": "备份目录",
+  "backup.last_path": "最近备份文件"
 }

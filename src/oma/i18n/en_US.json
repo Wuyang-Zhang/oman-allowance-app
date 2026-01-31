@@ -194,5 +194,10 @@
   "students.duplicate_body": "This student ID already exists. Do you want to overwrite it?\nYes: overwrite\nNo: open edit\nCancel: do nothing",
   "students.duplicate_overwrite": "Overwrite",
   "students.duplicate_edit": "Edit existing",
-  "students.duplicate_cancel": "Cancel"
+  "students.duplicate_cancel": "Cancel",
+  "backup.desc": "Backup creates a zip of students, configs, runs, records, and baggage payments.",
+  "backup.mode_replace": "Replace restore: clears current data then restores from backup.",
+  "backup.mode_merge": "Merge restore: keeps current data and adds from backup.",
+  "backup.path_label": "Backup folder",
+  "backup.last_path": "Last backup file"
 }

@@ -383,7 +383,17 @@ class MainWindow(QMainWindow):
         self.backup_restore_btn.setText(self.translator.t("backup.restore"))
         self.backup_replace_btn.setText(self.translator.t("backup.restore_replace"))
         self.backup_merge_btn.setText(self.translator.t("backup.restore_merge"))
-        self.backup_info.setText(self.translator.t("backup.pre_backup"))
+        self.backup_info.setText(
+            "\n".join(
+                [
+                    self.translator.t("backup.desc"),
+                    self.translator.t("backup.mode_replace"),
+                    self.translator.t("backup.mode_merge"),
+                ]
+            )
+        )
+        self.backup_path_label.setText(self.translator.t("backup.path_label"))
+        self.backup_path_value.setText(str(backup_dir()))
         self.about_title.setText(self.translator.t("about.title"))
         self.about_subtitle.setText(self.translator.t("page.about.desc"))
         self.about_subtitle.setVisible(True)
@@ -742,6 +752,13 @@ class MainWindow(QMainWindow):
         self.backup_info.setProperty("role", "hint")
         self.backup_info.setWordWrap(True)
         backup_layout.addWidget(self.backup_info)
+        self.backup_path_label = QLabel()
+        self.backup_path_label.setProperty("role", "section")
+        self.backup_path_value = QLabel()
+        self.backup_path_value.setProperty("role", "hint")
+        self.backup_path_value.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        backup_layout.addWidget(self.backup_path_label)
+        backup_layout.addWidget(self.backup_path_value)
         content.addWidget(backup_card)
 
         self.backup_status = QLabel("")
@@ -1352,7 +1369,7 @@ class MainWindow(QMainWindow):
 
     def _backup(self) -> None:
         path = create_backup()
-        self.backup_status.setText(str(path))
+        self.backup_status.setText(f"{self.translator.t('backup.last_path')}: {path}")
 
     def _restore_prompt(self) -> None:
         QMessageBox.information(self, "", self.translator.t("backup.pre_backup"))
