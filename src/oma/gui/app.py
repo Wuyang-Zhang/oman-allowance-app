@@ -37,8 +37,9 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QSizePolicy,
 )
-from PySide6.QtGui import QCursor
+from PySide6.QtGui import QBrush, QColor, QCursor
 from PySide6.QtWidgets import QHeaderView
+from PySide6.QtWidgets import QStyledItemDelegate
 
 from ..config import AllowanceConfig
 from ..models import DegreeLevel, Status, AllowanceType
@@ -95,6 +96,16 @@ class DateDebugFilter(QObject):
                 f"[DATE_DEBUG] {self.name} event={event.type()} widget_at={widget_name}"
             )
         return False
+
+
+class ColumnStripeDelegate(QStyledItemDelegate):
+    def initStyleOption(self, option, index) -> None:
+        super().initStyleOption(option, index)
+        option.displayAlignment = Qt.AlignCenter
+        if index.column() % 2 == 0:
+            option.backgroundBrush = QBrush(QColor("#f8fafc"))
+        else:
+            option.backgroundBrush = QBrush(QColor("#ffffff"))
 
 
 class MainWindow(QMainWindow):
@@ -906,11 +917,13 @@ class MainWindow(QMainWindow):
         header = table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Stretch)
         header.setStretchLastSection(True)
+        header.setDefaultAlignment(Qt.AlignCenter)
         table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         table.setAlternatingRowColors(True)
         table.setSelectionBehavior(QTableWidget.SelectRows)
         table.setSelectionMode(QTableWidget.SingleSelection)
         table.verticalHeader().setVisible(False)
+        table.setItemDelegate(ColumnStripeDelegate(table))
 
     def _apply_section_layout(self, layout: QVBoxLayout) -> None:
         layout.setContentsMargins(24, 20, 24, 20)
@@ -1528,6 +1541,7 @@ def run() -> None:
             padding: 8px;
             border: 0;
             border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
         }
         QTableWidget::item:selected { background: #e5e7eb; color: #111827; }
         QScrollBar:vertical { background: transparent; width: 10px; margin: 2px; }
