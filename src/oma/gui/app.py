@@ -103,9 +103,9 @@ class ColumnStripeDelegate(QStyledItemDelegate):
         super().initStyleOption(option, index)
         option.displayAlignment = Qt.AlignCenter
         if index.column() % 2 == 0:
-            option.backgroundBrush = QBrush(QColor("#f8fafc"))
+            option.backgroundBrush = QBrush(QColor("#f5f7fb"))
         else:
-            option.backgroundBrush = QBrush(QColor("#ffffff"))
+            option.backgroundBrush = QBrush(QColor("#eef2f7"))
 
 
 class MainWindow(QMainWindow):
@@ -356,6 +356,7 @@ class MainWindow(QMainWindow):
         self.dashboard_month_label = QLabel()
         self.dashboard_month_label.setProperty("role", "toolbar-label")
         self.settlement_month = QDateEdit()
+        self.settlement_month.setMinimumWidth(160)
         configure_date_edit(self.settlement_month, "yyyy-MM")
         saved_month = self.settings.get("settlement_month")
         if saved_month:
@@ -1517,8 +1518,16 @@ def run() -> None:
         }
         QComboBox::drop-down { border: 0; width: 22px; }
         QComboBox::down-arrow { image: none; border: 0; }
-        QDateEdit::drop-down { border: 0; width: 22px; }
-        QDateEdit::down-arrow { image: none; border: 0; }
+        QDateEdit::drop-down {
+            border-left: 1px solid #d1d5db;
+            width: 26px;
+            background: #f3f4f6;
+        }
+        QDateEdit::down-arrow {
+            image: none;
+            border: 0;
+        }
+        QDateEdit::drop-down:hover { background: #e5e7eb; }
         QPushButton { border-radius: 8px; padding: 6px 12px; }
         QPushButton[variant="primary"] { background: #111827; color: #ffffff; border: 1px solid #111827; }
         QPushButton[variant="secondary"] { background: #ffffff; color: #111827; border: 1px solid #d1d5db; }
@@ -1533,14 +1542,14 @@ def run() -> None:
             background: #ffffff;
             border: 1px solid #e5e7eb;
             border-radius: 10px;
-            gridline-color: #f1f5f9;
+            gridline-color: #e1e6ee;
         }
         QHeaderView::section {
             background: #f9fafb;
             color: #111827;
             padding: 8px;
             border: 0;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #d7dde7;
             font-weight: 600;
         }
         QTableWidget::item:selected { background: #e5e7eb; color: #111827; }
