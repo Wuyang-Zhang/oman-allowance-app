@@ -500,3 +500,13 @@ class WebApp(QWebEngineView):
     def closeEvent(self, event) -> None:
         self.conn.close()
         event.accept()
+
+
+def run() -> None:
+    from PySide6.QtWidgets import QApplication
+
+    app = QApplication([])
+    window = WebApp()
+    window.resize(1280, 800)
+    window.show()
+    app.exec()
