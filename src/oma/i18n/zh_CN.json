@@ -147,6 +147,7 @@
 
   "error.invalid_date": "日期格式错误",
   "error.export_failed": "保存失败，请检查权限或文件是否被占用",
+  "error.csv_header_mismatch": "CSV 表头不匹配，请使用标准模板。期望表头：{expected}",
   "error.missing_columns": "CSV 缺少必要列",
   "error.required": "必填项不能为空",
   "error.graduation_required": "毕业状态必须填写毕业日期",

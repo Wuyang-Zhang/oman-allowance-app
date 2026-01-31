@@ -17,6 +17,7 @@ from ..models import DegreeLevel, Status
 from ..storage import db
 from ..storage.backup import create_backup, restore_backup
 from ..gui.exporter import export_monthly_settlement_excel, export_records
+from ..schema import STUDENT_CSV_HEADERS
 from ..gui.i18n import Translator
 from ..gui.settings import load_settings, save_settings
 from ..gui.settlement import compute_monthly_settlement, parse_settlement_month, same_month
@@ -115,24 +116,27 @@ class Backend(QObject):
         import io
 
         reader = csv.DictReader(io.StringIO(csv_text))
-        required = [
-            "student_id",
-            "name",
-            "degree_level",
-            "first_entry_date",
-            "status",
-            "graduation_date",
-            "withdrawal_date",
-        ]
-        if not reader.fieldnames or any(c not in reader.fieldnames for c in required):
+        if not reader.fieldnames:
             return json.dumps(
-                {"ok": False, "errors": [self.translator.t("error.missing_columns")]},
+                {"ok": False, "errors": [self.translator.t("error.csv_header_mismatch")]},
+                ensure_ascii=False,
+            )
+        fieldnames = list(reader.fieldnames)
+        if fieldnames and fieldnames[0].startswith("\ufeff"):
+            fieldnames[0] = fieldnames[0].lstrip("\ufeff")
+        if fieldnames != STUDENT_CSV_HEADERS:
+            expected = ", ".join(STUDENT_CSV_HEADERS)
+            return json.dumps(
+                {"ok": False, "errors": [self.translator.t("error.csv_header_mismatch", expected=expected)]},
                 ensure_ascii=False,
             )
         errors = []
         warnings = []
         for idx, row in enumerate(reader, start=2):
             try:
+                if None in row and row[None]:
+                    errors.append(f"Row {idx}: {self.translator.t('error.csv_header_mismatch')}")
+                    continue
                 student, row_errors, row_warnings = self._validate_student(row)
                 if row_errors:
                     for err in row_errors:
@@ -149,16 +153,7 @@ class Backend(QObject):
 
     @Slot(result=str)
     def get_csv_template(self) -> str:
-        headers = [
-            "student_id",
-            "name",
-            "degree_level",
-            "first_entry_date",
-            "status",
-            "graduation_date",
-            "withdrawal_date",
-        ]
-        return ",".join(headers)
+        return ",".join(STUDENT_CSV_HEADERS)
 
     @Slot(result=str)
     def export_csv_template(self) -> str:

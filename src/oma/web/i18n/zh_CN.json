@@ -145,6 +145,7 @@
   "errors.graduation_before_entry": "毕业日期必须晚于或等于入境日期",
   "errors.csv_no_headers": "CSV 缺少表头",
   "errors.csv_missing_columns": "缺少列：{columns}",
+  "errors.csv_header_mismatch": "CSV 表头不匹配，期望：{expected}",
   "errors.csv_row": "第 {row} 行：{error}",
   "errors.no_run": "尚未进行计算",
   "errors.no_records": "没有计算记录",

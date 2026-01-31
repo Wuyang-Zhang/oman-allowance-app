@@ -145,6 +145,7 @@
   "errors.graduation_before_entry": "graduation_date must be on or after first_entry_date",
   "errors.csv_no_headers": "CSV has no headers",
   "errors.csv_missing_columns": "Missing columns: {columns}",
+  "errors.csv_header_mismatch": "CSV header mismatch. Expected: {expected}.",
   "errors.csv_row": "Row {row}: {error}",
   "errors.no_run": "No calculation run found",
   "errors.no_records": "No calculation records found",

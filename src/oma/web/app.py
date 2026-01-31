@@ -18,6 +18,7 @@ from jinja2 import pass_context
 from ..calculations import CalculationContext
 from ..config import AllowanceConfig
 from ..export import Table, write_csv, write_excel_xlsx
+from ..schema import STUDENT_CSV_HEADERS
 from ..models import AllowanceRecord, AllowanceType, DegreeLevel, Status
 from ..utils import month_end, proration_fraction, quantize_amount
 from . import db
@@ -806,15 +807,7 @@ def reports_export(
 
 @app.get("/exports/template")
 def export_template() -> FileResponse:
-    headers = [
-        "student_id",
-        "name",
-        "degree_level",
-        "first_entry_date",
-        "graduation_date",
-        "withdrawal_date",
-        "status",
-    ]
+    headers = STUDENT_CSV_HEADERS
     temp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
     temp.close()
     write_csv(temp.name, [], headers)
@@ -916,23 +909,18 @@ def _parse_students_csv(content: str, lang: str) -> Tuple[List[str], List[db.Web
     errors: List[str] = []
     students: List[db.WebStudent] = []
     reader = csv.DictReader(io.StringIO(content))
-    required = [
-        "student_id",
-        "name",
-        "degree_level",
-        "first_entry_date",
-        "graduation_date",
-        "withdrawal_date",
-        "status",
-    ]
     if not reader.fieldnames:
-        return [translate(lang, "errors.csv_no_headers")], []
-    missing = [name for name in required if name not in reader.fieldnames]
-    if missing:
-        return [translate(lang, "errors.csv_missing_columns", columns=", ".join(missing))], []
+        return [translate(lang, "errors.csv_header_mismatch", expected=", ".join(STUDENT_CSV_HEADERS))], []
+    fieldnames = list(reader.fieldnames)
+    if fieldnames and fieldnames[0].startswith("\ufeff"):
+        fieldnames[0] = fieldnames[0].lstrip("\ufeff")
+    if fieldnames != STUDENT_CSV_HEADERS:
+        return [translate(lang, "errors.csv_header_mismatch", expected=", ".join(STUDENT_CSV_HEADERS))], []
 
     for idx, row in enumerate(reader, start=2):
         try:
+            if None in row and row[None]:
+                raise ValueError(translate(lang, "errors.csv_header_mismatch", expected=", ".join(STUDENT_CSV_HEADERS)))
             student_id = row["student_id"].strip()
             name = row["name"].strip()
             degree_raw = row["degree_level"].strip()

@@ -539,20 +539,23 @@ class MainWindow(QMainWindow):
         errors = []
         with open(path, "r", encoding="utf-8") as handle:
             reader = csv.DictReader(handle)
-            required = [
-                "student_id",
-                "name",
-                "degree_level",
-                "first_entry_date",
-                "status",
-                "graduation_date",
-                "withdrawal_date",
-            ]
-            if not reader.fieldnames or any(c not in reader.fieldnames for c in required):
-                QMessageBox.warning(self, "", self.translator.t("error.required"))
+            from ..schema import STUDENT_CSV_HEADERS
+            if not reader.fieldnames:
+                QMessageBox.warning(self, "", self.translator.t("error.csv_header_mismatch"))
+                return
+            fieldnames = list(reader.fieldnames)
+            if fieldnames and fieldnames[0].startswith("\ufeff"):
+                fieldnames[0] = fieldnames[0].lstrip("\ufeff")
+            if fieldnames != STUDENT_CSV_HEADERS:
+                expected = ", ".join(STUDENT_CSV_HEADERS)
+                QMessageBox.warning(
+                    self, "", self.translator.t("error.csv_header_mismatch", expected=expected)
+                )
                 return
             for idx, row in enumerate(reader, start=2):
                 try:
+                    if None in row and row[None]:
+                        raise ValueError(self.translator.t("error.csv_header_mismatch"))
                     student = _row_to_student(row)
                     db.upsert_student(self.conn, student)
                 except Exception as exc:
@@ -568,15 +571,8 @@ class MainWindow(QMainWindow):
         path, _ = QFileDialog.getSaveFileName(self, "", "students_template.csv")
         if not path:
             return
-        headers = [
-            "student_id",
-            "name",
-            "degree_level",
-            "first_entry_date",
-            "status",
-            "graduation_date",
-            "withdrawal_date",
-        ]
+        from ..schema import STUDENT_CSV_HEADERS
+        headers = STUDENT_CSV_HEADERS
         with open(path, "w", newline="", encoding="utf-8") as handle:
             writer = csv.writer(handle)
             writer.writerow(headers)

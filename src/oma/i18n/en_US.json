@@ -147,6 +147,7 @@
 
   "error.invalid_date": "Invalid date format",
   "error.export_failed": "Save failed. Check file permissions or if the file is in use.",
+  "error.csv_header_mismatch": "CSV header mismatch. Please use the standard template. Expected: {expected}",
   "error.missing_columns": "CSV is missing required columns",
   "error.required": "This field is required",
   "error.graduation_required": "Graduation date is required for Graduated status",
