@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ t("config.title") }}</h1>
+  <div class="card">
+    <p>{{ t("config.current_version") }}: <strong>{{ config.version }}</strong></p>
+    <p>{{ t("config.updated_at") }}: <strong>{{ config.updated_at }}</strong></p>
+  </div>
+  <div class="card">
+    <form method="post" action="/config">
+      <h3>{{ t("config.living_title") }}</h3>
+      <label>{{ t("config.living.bachelor") }}</label>
+      <input name="living_bachelor" value="{{ config.living_allowance_bachelor }}" required />
+      <label>{{ t("config.living.master") }}</label>
+      <input name="living_master" value="{{ config.living_allowance_master }}" required />
+      <label>{{ t("config.living.phd") }}</label>
+      <input name="living_phd" value="{{ config.living_allowance_phd }}" required />
+
+      <h3>{{ t("config.other_title") }}</h3>
+      <label>{{ t("config.study") }}</label>
+      <input name="study_allowance" value="{{ config.study_allowance_usd }}" required />
+      <label>{{ t("config.baggage") }}</label>
+      <input name="baggage_allowance" value="{{ config.baggage_allowance_usd }}" required />
+
+      <h3>{{ t("config.fx_policy") }}</h3>
+      <label>{{ t("config.fx_rate") }}</label>
+      <input name="fx_rate" value="{{ config.fx_rate_usd_to_cny }}" required />
+      <label>
+        <input type="checkbox" name="issue_study_if_exit_before_oct_entry_year" value="1" {% if config.issue_study_if_exit_before_oct_entry_year %}checked{% endif %} />
+        {{ t("config.policy") }}
+      </label>
+      <label>
+        <input type="checkbox" name="withdrawn_living_default" value="1" {% if config.withdrawn_living_default %}checked{% endif %} />
+        {{ t("config.withdrawn_living_default") }}
+      </label>
+      <p>{{ t("config.rounding") }}: <strong>{{ config.rounding_mode }}</strong> ({{ t("config.rounding_fixed") }})</p>
+
+      <div class="actions" style="margin-top: 12px;">
+        <button class="btn" type="submit">{{ t("config.action.save") }}</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

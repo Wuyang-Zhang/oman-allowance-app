@@ -1,0 +1,4 @@
+student_id,name,degree_level,first_entry_date,status,graduation_date,withdrawal_date
+S001,Aisha Al-Harthy,Bachelor,2022-09-10,Graduated,2026-06-30,
+S002,Salim Al-Saadi,Master,2024-02-01,Withdrawn,,2024-05-20
+S003,Muna Al-Lawati,PhD,2023-09-15,In-study,,

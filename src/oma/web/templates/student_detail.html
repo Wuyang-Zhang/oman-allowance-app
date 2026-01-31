@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ t("student.detail.title") }}</h1>
+  {% for error in errors %}
+    <div class="error">{{ error }}</div>
+  {% endfor %}
+  {% for warning in warnings %}
+    <div class="warn">{{ warning }}</div>
+  {% endfor %}
+
+  <div class="card">
+    <form method="post" action="{% if student %}/students/{{ student.student_id }}{% else %}/students/new{% endif %}">
+      <label>{{ t("student.field.student_id") }}</label>
+      <input name="student_id" value="{{ student.student_id if student else '' }}" {% if student %}readonly{% endif %} required />
+
+      <label>{{ t("student.field.name") }}</label>
+      <input name="name" value="{{ student.name if student else '' }}" required />
+
+      <label>{{ t("student.field.degree") }}</label>
+      <select name="degree_level">
+        {% for level in degree_levels %}
+          <option value="{{ level.value }}" {% if student and student.degree_level.value == level.value %}selected{% endif %}>{{ level.label }}</option>
+        {% endfor %}
+      </select>
+
+      <label>{{ t("student.field.first_entry") }}</label>
+      <input name="first_entry_date" value="{{ student.first_entry_date if student else '' }}" required />
+
+      <label>{{ t("student.field.graduation") }}</label>
+      <input id="graduation_date" name="graduation_date" value="{{ student.graduation_date if student and student.graduation_date else '' }}" />
+      <div class="hint">{{ t("student.hint.graduation") }}</div>
+
+      <label>{{ t("student.field.status") }}</label>
+      <select name="status">
+        {% for item in statuses %}
+          <option value="{{ item.value }}" {% if student and student.status.value == item.value %}selected{% endif %}>{{ item.label }}</option>
+        {% endfor %}
+      </select>
+
+      <label>{{ t("student.field.withdrawal") }}</label>
+      <input id="withdrawal_date" name="withdrawal_date" value="{{ student.withdrawal_date if student and student.withdrawal_date else '' }}" />
+      <div class="hint">{{ t("student.hint.withdrawal") }}</div>
+
+      <div class="actions" style="margin-top: 12px;">
+        <button class="btn" type="submit">{{ t("student.action.save") }}</button>
+      </div>
+    </form>
+  </div>
+
+  {% if student %}
+    <div class="card actions">
+      <form method="post" action="/students/{{ student.student_id }}/calculate">
+        <button class="btn secondary" type="submit">{{ t("student.action.recalculate") }}</button>
+      </form>
+    </div>
+    <div class="card">
+      <a class="btn" href="/reports?student_id={{ student.student_id }}">{{ t("student.action.view_breakdown") }}</a>
+    </div>
+  {% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+  const statusSelect = document.querySelector('select[name="status"]');
+  const gradInput = document.getElementById('graduation_date');
+  function toggleGraduation() {
+    const status = statusSelect.value;
+    const isGraduated = status === 'Graduated';
+    gradInput.readOnly = !isGraduated;
+    gradInput.required = isGraduated;
+    if (isGraduated) {
+      gradInput.classList.remove('readonly');
+    } else {
+      gradInput.classList.add('readonly');
+    }
+  }
+  const withdrawalInput = document.getElementById('withdrawal_date');
+  function toggleWithdrawal() {
+    const status = statusSelect.value;
+    const isWithdrawn = status === 'Withdrawn';
+    withdrawalInput.readOnly = !isWithdrawn;
+    withdrawalInput.required = isWithdrawn;
+    if (isWithdrawn) {
+      withdrawalInput.classList.remove('readonly');
+    } else {
+      withdrawalInput.classList.add('readonly');
+    }
+  }
+  statusSelect.addEventListener('change', toggleGraduation);
+  statusSelect.addEventListener('change', toggleWithdrawal);
+  toggleGraduation();
+  toggleWithdrawal();
+</script>
+{% endblock %}

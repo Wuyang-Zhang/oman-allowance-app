@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="{{ 'zh-CN' if request.state.lang == 'zh_CN' else 'en' }}">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title or t("nav.dashboard") }}</title>
+  <style>
+    body { font-family: "Georgia", "Times New Roman", serif; margin: 0; background: #f6f3ee; color: #222; }
+    header { background: #1c2d3f; color: #fff; padding: 16px 24px; }
+    nav a { color: #fff; margin-right: 16px; text-decoration: none; font-weight: bold; }
+    main { padding: 24px; }
+    .card { background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #e0d8cd; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+    th, td { border: 1px solid #e0d8cd; padding: 8px; text-align: left; }
+    th { background: #f0e7dc; }
+    .btn { display: inline-block; padding: 8px 12px; background: #1c2d3f; color: #fff; border-radius: 4px; text-decoration: none; border: none; cursor: pointer; }
+    .btn.secondary { background: #a66a2e; }
+    .btn.light { background: #e0d8cd; color: #1c2d3f; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .error { background: #ffe8e8; border: 1px solid #d99393; color: #7a1212; padding: 8px; margin-bottom: 8px; }
+    .warn { background: #fff4e6; border: 1px solid #e0b77f; color: #7a4b12; padding: 8px; margin-bottom: 8px; }
+    .hint { font-size: 0.9rem; color: #555; margin-top: 4px; }
+    label { display: block; font-weight: bold; margin-top: 8px; }
+    input, select { width: 100%; padding: 6px; margin-top: 4px; }
+    input.readonly { background: #f0f0f0; color: #666; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="actions">
+      <nav>
+        <a href="/">{{ t("nav.dashboard") }}</a>
+        <a href="/students">{{ t("nav.students") }}</a>
+        <a href="/reports">{{ t("nav.reports") }}</a>
+        <a href="/config">{{ t("nav.config") }}</a>
+        <span style="margin-left: 16px; font-weight: bold;">{{ t("nav.language") }}:</span>
+        <a href="/lang/zh_CN">{{ t("lang.zh") }}</a>
+        <a href="/lang/en_US">{{ t("lang.en") }}</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

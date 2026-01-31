@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+.venv/
+env/
+venv/
+
+# Build / packaging
+build/
+dist/
+*.spec
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App data (runtime)
+*.db
+backups/
+*.zip
+
+# Logs
+*.log

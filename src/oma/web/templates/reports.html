@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ t("reports.title") }}</h1>
+  <div class="card">
+    <form method="get" action="/reports" class="actions">
+      <input type="text" name="student_id" placeholder="{{ t('reports.filter.student') }}" value="{{ student_id }}" />
+      <input type="text" name="year" placeholder="{{ t('reports.filter.year') }}" value="{{ year }}" />
+      <input type="text" name="settlement_month" placeholder="{{ t('reports.filter.month') }}" value="{{ settlement_month }}" />
+      <button class="btn" type="submit">{{ t("reports.action.filter") }}</button>
+      {% if student_id %}
+        <a class="btn secondary" href="/reports/export?student_id={{ student_id }}&format=csv">{{ t("reports.action.export_csv") }}</a>
+        <a class="btn secondary" href="/reports/export?student_id={{ student_id }}&format=xlsx">{{ t("reports.action.export_xlsx") }}</a>
+      {% elif year %}
+        <a class="btn secondary" href="/reports/export?year={{ year }}&format=csv">{{ t("reports.action.export_csv") }}</a>
+        <a class="btn secondary" href="/reports/export?year={{ year }}&format=xlsx">{{ t("reports.action.export_xlsx") }}</a>
+      {% elif settlement_month %}
+        <a class="btn secondary" href="/reports/export?settlement_month={{ settlement_month }}&format=csv">{{ t("reports.action.export_csv") }}</a>
+        <a class="btn secondary" href="/reports/export?settlement_month={{ settlement_month }}&format=xlsx">{{ t("reports.action.export_xlsx") }}</a>
+      {% else %}
+        <a class="btn secondary" href="/reports/export?format=csv">{{ t("reports.action.export_csv") }}</a>
+        <a class="btn secondary" href="/reports/export?format=xlsx">{{ t("reports.action.export_xlsx") }}</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="card">
+    <p>{{ t("reports.total_cny") }}: <strong>{{ totals_cny }}</strong></p>
+  </div>
+  {% if warnings_flag %}
+  <div class="warn">{{ t("reports.warnings") }}</div>
+  {% endif %}
+
+  <div class="card">
+    <h3>{{ t("reports.per_student_title") }}</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>{{ t("reports.table.student_id") }}</th>
+          <th>{{ t("reports.per_student_total") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sid, total in per_student_totals.items() %}
+          <tr>
+            <td>{{ sid }}</td>
+            <td>{{ total }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="2">{{ t("reports.table.none") }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ t("reports.table.student_id") }}</th>
+          <th>{{ t("reports.table.type") }}</th>
+          <th>{{ t("reports.table.period_start") }}</th>
+          <th>{{ t("reports.table.period_end") }}</th>
+          <th>{{ t("reports.table.usd") }}</th>
+          <th>{{ t("reports.table.fx") }}</th>
+          <th>{{ t("reports.table.cny") }}</th>
+          <th>{{ t("reports.table.rule") }}</th>
+          <th>{{ t("reports.table.description") }}</th>
+          <th>{{ t("reports.table.metadata") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in records %}
+          <tr>
+            <td>{{ row['student_id'] }}</td>
+            <td>{{ allowance_label(row['allowance_type']) }}</td>
+            <td>{{ row['period_start'] }}</td>
+            <td>{{ row['period_end'] }}</td>
+            <td>{{ row['amount_usd'] }}</td>
+            <td>{{ row['fx_rate'] }}</td>
+            <td>{{ row['amount_cny'] }}</td>
+            <td>{{ row['rule_id'] }}</td>
+            <td>{{ row['description'] }}</td>
+            <td>{{ row['metadata_json'] }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="10">{{ t("reports.table.none") }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oma-allowance"
+version = "0.1.0"
+description = "Oman Students Allowance Calculator"
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+web = [
+  "fastapi>=0.110",
+  "uvicorn>=0.24",
+  "jinja2>=3.1",
+  "python-multipart>=0.0.9",
+]
+test = [
+  "requests>=2.31",
+]
+desktop = [
+  "PySide6>=6.5",
+  "pyinstaller>=6.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

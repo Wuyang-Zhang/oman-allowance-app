@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ t("students.title") }}</h1>
+  <div class="card">
+    <form method="get" action="/students" class="actions">
+      <input type="text" name="q" placeholder="{{ t('students.search.placeholder') }}" value="{{ query }}" />
+      <select name="degree">
+        <option value="">{{ t("students.filter.degree") }}</option>
+        {% for level in degree_levels %}
+          <option value="{{ level.value }}" {% if degree == level.value %}selected{% endif %}>{{ level.label }}</option>
+        {% endfor %}
+      </select>
+      <select name="status">
+        <option value="">{{ t("students.filter.status") }}</option>
+        {% for item in statuses %}
+          <option value="{{ item.value }}" {% if status == item.value %}selected{% endif %}>{{ item.label }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn" type="submit">{{ t("students.action.filter") }}</button>
+      <a class="btn light" href="/students/new">{{ t("students.action.add") }}</a>
+      <a class="btn light" href="/exports/template">{{ t("students.action.template") }}</a>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>{{ t("students.bulk_import") }}</h3>
+    <form method="post" action="/students/import" enctype="multipart/form-data" class="actions">
+      <input type="file" name="file" accept=".csv" required />
+      <button class="btn" type="submit">{{ t("students.bulk_import.upload") }}</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>{{ t("students.table.student_id") }}</th>
+          <th>{{ t("students.table.name") }}</th>
+          <th>{{ t("students.table.degree") }}</th>
+          <th>{{ t("students.table.first_entry") }}</th>
+          <th>{{ t("students.table.graduation") }}</th>
+          <th>{{ t("students.table.status") }}</th>
+          <th>{{ t("students.table.actions") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in students %}
+        <tr>
+          <td>{{ student.student_id }}</td>
+          <td>{{ student.name }}</td>
+          <td>{{ degree_label(student.degree_level.value) }}</td>
+          <td>{{ student.first_entry_date }}</td>
+          <td>{{ student.graduation_date or '' }}</td>
+          <td>{{ status_label(student.status.value) }}</td>
+          <td class="actions">
+            <a class="btn light" href="/students/{{ student.student_id }}">{{ t("students.action.view_edit") }}</a>
+            <form method="post" action="/students/{{ student.student_id }}/calculate">
+              <button class="btn" type="submit">{{ t("students.action.calculate") }}</button>
+            </form>
+            <a class="btn secondary" href="/students/{{ student.student_id }}/export?format=csv">{{ t("students.action.export_csv") }}</a>
+            <a class="btn secondary" href="/students/{{ student.student_id }}/export?format=xlsx">{{ t("students.action.export_xlsx") }}</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">{{ t("students.table.none") }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ t("dashboard.title") }}</h1>
+  <div class="grid">
+    <div class="card">
+      <h3>{{ t("dashboard.fx_block") }}</h3>
+      <p>{{ t("dashboard.fx_rate") }}: <strong>{{ config.fx_rate_usd_to_cny }}</strong></p>
+      <p>{{ t("dashboard.rounding") }}: <strong>{{ config.rounding_mode }}</strong></p>
+      <p>{{ t("dashboard.config_version") }}: <strong>{{ config.version }}</strong></p>
+    </div>
+    <div class="card">
+      <h3>{{ t("dashboard.counts") }}</h3>
+      <p>{{ t("dashboard.count.total") }}: <strong>{{ counts.total }}</strong></p>
+      <p>{{ t("dashboard.count.in_study") }}: <strong>{{ counts['In-study'] }}</strong></p>
+      <p>{{ t("dashboard.count.graduated") }}: <strong>{{ counts['Graduated'] }}</strong></p>
+      <p>{{ t("dashboard.count.withdrawn") }}: <strong>{{ counts['Withdrawn'] }}</strong></p>
+    </div>
+    <div class="card">
+      <h3>{{ t("dashboard.latest_run") }}</h3>
+      {% if latest_run %}
+        <p>{{ t("dashboard.latest_run.run_id") }}: <strong>{{ latest_run.run_id }}</strong></p>
+        <p>{{ t("dashboard.latest_run.label") }}: <strong>{{ run_label(latest_run.label) }}</strong></p>
+        <p>{{ t("dashboard.latest_run.created") }}: <strong>{{ latest_run.created_at }}</strong></p>
+        <p>{{ t("dashboard.latest_run.config_version") }}: <strong>{{ latest_run.config_version }}</strong></p>
+      {% else %}
+        <p>{{ t("dashboard.latest_run.none") }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>{{ t("dashboard.special.title") }}</h3>
+    <p>{{ t("dashboard.special.hint") }}</p>
+    <form method="post" action="/settlement/run">
+      <div class="actions" style="margin-bottom: 12px;">
+        <label style="min-width: 160px;">{{ t("dashboard.settlement_month") }}</label>
+        <input type="month" name="settlement_month" value="{{ settlement_month }}" required />
+        <button class="btn" type="submit">{{ t("dashboard.action.run_all") }}</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t("students.table.student_id") }}</th>
+            <th>{{ t("students.table.name") }}</th>
+            <th>{{ t("students.table.status") }}</th>
+            <th>{{ t("dashboard.special.type") }}</th>
+            <th>{{ t("dashboard.special.action") }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in special_baggage %}
+          <tr>
+            <td>{{ student.student_id }}</td>
+            <td>{{ student.name }}</td>
+            <td>{{ status_label(student.status.value) }}</td>
+            <td>{{ t("dashboard.special.baggage") }}</td>
+            <td>
+              <label>
+                <input type="checkbox" name="baggage_pay" value="{{ student.student_id }}" />
+                {{ t("dashboard.special.baggage_toggle") }}
+              </label>
+            </td>
+          </tr>
+          {% endfor %}
+          {% for student in special_withdrawal %}
+          <tr>
+            <td>{{ student.student_id }}</td>
+            <td>{{ student.name }}</td>
+            <td>{{ status_label(student.status.value) }}</td>
+            <td>{{ t("dashboard.special.withdrawal") }}</td>
+            <td>
+              <label>
+                <input type="checkbox" name="withdrawal_living_pay" value="{{ student.student_id }}" {% if config.withdrawn_living_default %}checked{% endif %} />
+                {{ t("dashboard.special.withdrawal_toggle") }}
+              </label>
+            </td>
+          </tr>
+          {% endfor %}
+          {% if special_baggage|length == 0 and special_withdrawal|length == 0 %}
+          <tr><td colspan="5">{{ t("dashboard.special.none") }}</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+      <div class="actions" style="margin-top: 12px;">
+        <button class="btn" type="submit">{{ t("dashboard.action.run_all") }}</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card actions">
+    <form method="post" action="/export-settlement">
+      <input type="hidden" name="format" value="csv" />
+      <input type="hidden" name="settlement_month" value="{{ settlement_month }}" />
+      <button class="btn secondary" type="submit">{{ t("dashboard.action.export_csv") }}</button>
+    </form>
+    <form method="post" action="/export-settlement">
+      <input type="hidden" name="format" value="xlsx" />
+      <input type="hidden" name="settlement_month" value="{{ settlement_month }}" />
+      <button class="btn secondary" type="submit">{{ t("dashboard.action.export_xlsx") }}</button>
+    </form>
+  </div>
+{% endblock %}

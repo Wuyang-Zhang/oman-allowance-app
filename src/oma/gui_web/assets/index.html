@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oman Allowance</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+</head>
+<body>
+  <header>
+    <div class="title" id="app-title">Oman Allowance</div>
+    <div class="lang">
+      <select id="lang-select">
+        <option value="zh_CN">中文</option>
+        <option value="en_US">English</option>
+      </select>
+    </div>
+  </header>
+
+  <nav>
+    <button data-tab="dashboard" class="tab active">Dashboard</button>
+    <button data-tab="students" class="tab">Students</button>
+    <button data-tab="config" class="tab">Config</button>
+    <button data-tab="reports" class="tab">Reports</button>
+    <button data-tab="backup" class="tab">Backup</button>
+    <button data-tab="about" class="tab">About</button>
+  </nav>
+
+  <main>
+    <section id="dashboard" class="panel active">
+      <div class="card grid">
+        <div class="field">
+          <label id="settlement-label"></label>
+          <input type="month" id="settlement-month" />
+        </div>
+        <div class="field">
+          <button id="run-settlement"></button>
+          <div class="muted" id="run-info"></div>
+        </div>
+        <div class="field">
+          <div class="kv"><span id="run-id-label"></span><span id="run-id"></span></div>
+          <div class="kv"><span id="run-fx-label"></span><span id="run-fx"></span></div>
+          <div class="kv"><span id="run-config-label"></span><span id="run-config"></span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 id="dashboard-counts"></h3>
+        <div class="counts">
+          <div class="count"><div class="label" id="count-total-label"></div><div class="value" id="count-total"></div></div>
+          <div class="count"><div class="label" id="count-in-label"></div><div class="value" id="count-in"></div></div>
+          <div class="count"><div class="label" id="count-grad-label"></div><div class="value" id="count-grad"></div></div>
+          <div class="count"><div class="label" id="count-with-label"></div><div class="value" id="count-with"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 id="special-title"></h3>
+        <p id="special-hint" class="muted"></p>
+        <table id="special-table">
+          <thead>
+            <tr>
+              <th id="col-student-id"></th>
+              <th id="col-name"></th>
+              <th id="col-status"></th>
+              <th id="col-type"></th>
+              <th id="col-action"></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="card actions">
+        <button id="export-csv"></button>
+        <button id="export-xlsx"></button>
+      </div>
+    </section>
+
+    <section id="students" class="panel">
+      <div class="card actions">
+        <input id="student-search" placeholder="" />
+        <button id="student-add"></button>
+        <button id="student-edit"></button>
+        <button id="student-delete"></button>
+        <button id="student-import"></button>
+        <button id="student-template"></button>
+        <input type="file" id="student-import-file" accept=".csv" style="display:none" />
+        <div id="student-status" class="muted"></div>
+      </div>
+      <div class="card">
+        <table id="students-table">
+          <thead><tr></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="config" class="panel">
+      <div class="card">
+        <div class="grid">
+          <label id="cfg-living-b-label"></label><input id="cfg-living-b" />
+          <label id="cfg-living-m-label"></label><input id="cfg-living-m" />
+          <label id="cfg-living-p-label"></label><input id="cfg-living-p" />
+          <label id="cfg-study-label"></label><input id="cfg-study" />
+          <label id="cfg-baggage-label"></label><input id="cfg-baggage" />
+          <label id="cfg-fx-label"></label><input id="cfg-fx" />
+        </div>
+        <label class="checkbox"><input type="checkbox" id="cfg-policy" /> <span id="cfg-policy-label"></span></label>
+        <label class="checkbox"><input type="checkbox" id="cfg-withdrawn-default" /> <span id="cfg-withdrawn-label"></span></label>
+        <div class="actions">
+          <button id="cfg-save"></button>
+          <div id="cfg-status" class="muted"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="reports" class="panel">
+      <div class="card actions">
+        <input type="month" id="report-month" />
+        <button id="report-load"></button>
+        <div class="muted" id="report-info"></div>
+      </div>
+      <div class="card">
+        <h3 id="reports-total-title"></h3>
+        <table id="reports-total-table">
+          <thead><tr></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3 id="reports-records-title"></h3>
+        <table id="reports-table">
+          <thead><tr></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="backup" class="panel">
+      <div class="card actions">
+        <button id="backup-create"></button>
+        <button id="backup-restore"></button>
+        <button id="backup-replace"></button>
+        <button id="backup-merge"></button>
+        <div id="backup-status" class="muted"></div>
+      </div>
+    </section>
+
+    <section id="about" class="panel">
+      <div class="card">
+        <div id="about-version"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="student-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="student-modal-title"></h3>
+      <div id="student-form-error" class="error"></div>
+      <div class="form-grid">
+        <label id="form-student-id-label" for="form-student-id"></label>
+        <input id="form-student-id" />
+
+        <label id="form-name-label" for="form-name"></label>
+        <input id="form-name" />
+
+        <label id="form-degree-label" for="form-degree"></label>
+        <select id="form-degree"></select>
+
+        <label id="form-entry-label" for="form-entry"></label>
+        <input id="form-entry" type="date" />
+
+        <label id="form-status-label" for="form-status"></label>
+        <select id="form-status"></select>
+
+        <label id="form-graduation-label" for="form-graduation"></label>
+        <div class="date-row">
+          <input id="form-graduation" type="date" />
+          <label class="checkbox"><input type="checkbox" id="form-graduation-empty" /> <span id="form-empty-label"></span></label>
+        </div>
+        <div class="hint" id="grad-hint"></div>
+
+        <label id="form-withdrawal-label" for="form-withdrawal"></label>
+        <div class="date-row">
+          <input id="form-withdrawal" type="date" />
+          <label class="checkbox"><input type="checkbox" id="form-withdrawal-empty" /> <span id="form-empty-label-2"></span></label>
+        </div>
+        <div class="hint" id="withdraw-hint"></div>
+      </div>
+      <div class="actions">
+        <button id="student-save"></button>
+        <button id="student-cancel"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
