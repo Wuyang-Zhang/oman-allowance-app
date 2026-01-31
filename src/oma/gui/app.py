@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QStackedWidget,
     QSpinBox,
+    QToolButton,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -95,6 +96,7 @@ def configure_date_edit(widget: QDateEdit, display_format: str) -> None:
 def _install_calendar_year_dropdown(calendar: QWidget, min_date: QDate, max_date: QDate) -> None:
     nav = calendar.findChild(QWidget, "qt_calendar_navigationbar")
     year_edit = calendar.findChild(QSpinBox, "qt_calendar_yearedit")
+    year_button = calendar.findChild(QToolButton, "qt_calendar_yearbutton")
     if not nav or not year_edit:
         return
     if nav.findChild(QComboBox, "oma_year_combo"):
@@ -102,19 +104,40 @@ def _install_calendar_year_dropdown(calendar: QWidget, min_date: QDate, max_date
 
     combo = QComboBox(nav)
     combo.setObjectName("oma_year_combo")
+    combo.setFont(year_edit.font())
     for year in range(min_date.year(), max_date.year() + 1):
         combo.addItem(str(year), year)
 
     layout = nav.layout()
-    year_edit.hide()
+    year_edit.setEnabled(False)
+    year_edit.setVisible(False)
+    year_edit.setMaximumWidth(0)
+    year_edit.setMaximumHeight(0)
+    year_edit.setStyleSheet("QSpinBox{border:0;padding:0;margin:0;min-width:0;max-width:0;min-height:0;max-height:0;}")
     if layout:
         index = layout.indexOf(year_edit)
         if index >= 0:
-            layout.insertWidget(index, combo)
+            layout.removeWidget(year_edit)
+            layout.insertWidget(index, combo, 1, Qt.AlignCenter)
         else:
-            layout.addWidget(combo)
+            mid = max(0, layout.count() // 2)
+            layout.insertWidget(mid, combo, 1, Qt.AlignCenter)
+        layout.setAlignment(combo, Qt.AlignCenter)
     else:
         combo.setParent(calendar)
+
+    hidden = calendar.findChild(QWidget, "oma_hidden_year_container")
+    if hidden is None:
+        hidden = QWidget(calendar)
+        hidden.setObjectName("oma_hidden_year_container")
+        hidden.hide()
+    year_edit.setParent(hidden)
+    if year_button:
+        year_button.setEnabled(False)
+        year_button.setVisible(False)
+        if layout:
+            layout.removeWidget(year_button)
+        year_button.setParent(hidden)
 
     def sync_from_calendar(year: int, month: int) -> None:
         idx = combo.findData(year)
@@ -1587,13 +1610,18 @@ def run() -> None:
             color: #111827;
             border: 1px solid #d1d5db;
             border-radius: 8px;
+            min-width: 340px;
+            min-height: 280px;
         }
         QCalendarWidget QToolButton {
             background: #eef1f5;
             color: #111827;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            padding: 4px 8px;
+            padding: 6px 10px;
+            min-width: 64px;
+            font-size: 14px;
+            font-weight: 600;
         }
         QCalendarWidget QToolButton:hover { background: #e2e8f0; }
         QCalendarWidget QToolButton::menu-indicator { image: none; }
@@ -1601,9 +1629,20 @@ def run() -> None:
             background: #ffffff;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            padding: 2px 6px;
+            padding: 4px 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        QCalendarWidget QComboBox {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 14px;
+            font-weight: 600;
         }
         QCalendarWidget QAbstractItemView {
+            font-size: 14px;
             selection-background-color: #111827;
             selection-color: #ffffff;
             gridline-color: #e5e7eb;
