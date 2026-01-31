@@ -783,19 +783,28 @@ class MainWindow(QMainWindow):
             self._refresh_appbar()
             return
         records = db.fetch_records_for_run(self.conn, run.run_id)
+        students = db.list_students(self.conn)
+        student_map = {s.student_id: s for s in students}
         totals: Dict[str, Decimal] = {}
         for r in records:
             totals[r.student_id] = totals.get(r.student_id, Decimal("0")) + Decimal(r.amount_cny)
 
         self.per_student_table.setRowCount(len(totals))
-        self.per_student_table.setColumnCount(2)
+        self.per_student_table.setColumnCount(4)
         self.per_student_table.setHorizontalHeaderLabels([
             self.translator.t("field.student_id"),
+            self.translator.t("field.name"),
+            self.translator.t("field.entry_date"),
             self.translator.t("reports.per_student"),
         ])
         for row, (sid, total) in enumerate(totals.items()):
+            student = student_map.get(sid)
             self.per_student_table.setItem(row, 0, QTableWidgetItem(sid))
-            self.per_student_table.setItem(row, 1, QTableWidgetItem(str(total)))
+            self.per_student_table.setItem(row, 1, QTableWidgetItem(student.name if student else ""))
+            self.per_student_table.setItem(
+                row, 2, QTableWidgetItem(format_date(student.first_entry_date) if student else "")
+            )
+            self.per_student_table.setItem(row, 3, QTableWidgetItem(str(total)))
         if totals:
             self._set_table_state("per_student", "normal")
         else:
@@ -806,6 +815,8 @@ class MainWindow(QMainWindow):
             self.translator.t("export.header.run_id"),
             self.translator.t("export.header.settlement_month"),
             self.translator.t("export.header.student_id"),
+            self.translator.t("export.header.name"),
+            self.translator.t("export.header.entry_date"),
             self.translator.t("export.header.allowance_type"),
             self.translator.t("export.header.period_start"),
             self.translator.t("export.header.period_end"),
@@ -817,10 +828,13 @@ class MainWindow(QMainWindow):
         self.records_table.setColumnCount(len(headers))
         self.records_table.setHorizontalHeaderLabels(headers)
         for row, r in enumerate(records):
+            student = student_map.get(r.student_id)
             values = [
                 str(r.run_id),
                 r.settlement_month,
                 r.student_id,
+                student.name if student else "",
+                format_date(student.first_entry_date) if student else "",
                 self._allowance_label(r.allowance_type),
                 r.period_start,
                 r.period_end,
