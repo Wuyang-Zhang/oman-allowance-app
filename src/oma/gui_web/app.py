@@ -187,6 +187,8 @@ class Backend(QObject):
             },
             study_allowance_usd=Decimal(str(data["study_allowance"])),
             baggage_allowance_usd=Decimal(str(data["baggage_allowance"])),
+            study_allowance_month=int(data.get("study_allowance_month", 10)),
+            issue_study_if_entry_month=bool(data.get("issue_study_if_entry_month")),
             issue_study_if_exit_before_oct_entry_year=data["policy_switch"],
             fx_rate_usd_to_cny=Decimal(str(data["fx_rate"])),
             usd_quantize="0.01",

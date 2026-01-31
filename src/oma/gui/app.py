@@ -454,9 +454,13 @@ class MainWindow(QMainWindow):
         self.living_master = QLineEdit()
         self.living_phd = QLineEdit()
         self.study_allowance = QLineEdit()
+        self.study_allowance_month = QComboBox()
+        for month in range(1, 13):
+            self.study_allowance_month.addItem(f"{month:02d}", month)
         self.baggage_allowance = QLineEdit()
         self.fx_rate = QLineEdit()
         self.policy_switch = QCheckBox()
+        self.entry_month_switch = QCheckBox()
         self.withdrawn_default = QCheckBox()
 
         standard_title = QLabel()
@@ -507,6 +511,13 @@ class MainWindow(QMainWindow):
             ),
         )
         usd_form.addRow(
+            self.translator.t("config.study_month"),
+            self._field_with_hint(
+                self.study_allowance_month,
+                self.translator.t("config.hint.study_month"),
+            ),
+        )
+        usd_form.addRow(
             self.translator.t("config.baggage"),
             self._field_with_unit(
                 self.baggage_allowance,
@@ -536,6 +547,10 @@ class MainWindow(QMainWindow):
             self._field_with_hint(self.policy_switch, self.translator.t("config.hint.policy")),
         )
         policy_form.addRow(
+            self.translator.t("config.issue_entry_month"),
+            self._field_with_hint(self.entry_month_switch, self.translator.t("config.hint.entry_month")),
+        )
+        policy_form.addRow(
             self.translator.t("config.withdrawn_default"),
             self._field_with_hint(
                 self.withdrawn_default, self.translator.t("config.hint.withdrawn")
@@ -553,7 +568,9 @@ class MainWindow(QMainWindow):
             self.fx_rate,
         ]:
             field.editingFinished.connect(self._save_config)
+        self.study_allowance_month.currentIndexChanged.connect(self._save_config)
         self.policy_switch.stateChanged.connect(self._save_config)
+        self.entry_month_switch.stateChanged.connect(self._save_config)
         self.withdrawn_default.stateChanged.connect(self._save_config)
 
         self.config_status = QLabel("")
@@ -703,9 +720,14 @@ class MainWindow(QMainWindow):
         self.living_master.setText(cfg.living_allowance_master)
         self.living_phd.setText(cfg.living_allowance_phd)
         self.study_allowance.setText(cfg.study_allowance_usd)
+        month_value = getattr(cfg, "study_allowance_month", 10) or 10
+        month_index = self.study_allowance_month.findData(int(month_value))
+        if month_index >= 0:
+            self.study_allowance_month.setCurrentIndex(month_index)
         self.baggage_allowance.setText(cfg.baggage_allowance_usd)
         self.fx_rate.setText(cfg.fx_rate_usd_to_cny)
         self.policy_switch.setChecked(bool(cfg.issue_study_if_exit_before_oct_entry_year))
+        self.entry_month_switch.setChecked(bool(getattr(cfg, "issue_study_if_entry_month", 0)))
         self.withdrawn_default.setChecked(bool(cfg.withdrawn_living_default))
 
     def _load_special_panel(self) -> None:
@@ -1180,6 +1202,8 @@ class MainWindow(QMainWindow):
                 },
                 study_allowance_usd=Decimal(self.study_allowance.text()),
                 baggage_allowance_usd=Decimal(self.baggage_allowance.text()),
+                study_allowance_month=int(self.study_allowance_month.currentData()),
+                issue_study_if_entry_month=self.entry_month_switch.isChecked(),
                 issue_study_if_exit_before_oct_entry_year=self.policy_switch.isChecked(),
                 fx_rate_usd_to_cny=Decimal(self.fx_rate.text()),
                 usd_quantize=Decimal("0.01"),

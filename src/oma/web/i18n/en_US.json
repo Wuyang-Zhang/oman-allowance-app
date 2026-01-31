@@ -6,7 +6,6 @@
   "nav.language": "Language",
   "lang.zh": "中文",
   "lang.en": "English",
-
   "dashboard.title": "Dashboard",
   "dashboard.fx_block": "Current FX & Rounding",
   "dashboard.fx_rate": "USD → CNY Rate",
@@ -36,7 +35,6 @@
   "dashboard.special.withdrawal": "Living allowance in withdrawal month",
   "dashboard.special.withdrawal_toggle": "Pay living allowance this month",
   "dashboard.special.none": "No special payments for this month",
-
   "students.title": "Students",
   "students.search.placeholder": "Search by ID or name",
   "students.filter.degree": "All degrees",
@@ -58,7 +56,6 @@
   "students.action.calculate": "Settle this month",
   "students.action.export_csv": "Export CSV",
   "students.action.export_xlsx": "Export Excel",
-
   "student.detail.title": "Student Detail",
   "student.field.student_id": "Student ID",
   "student.field.name": "Name",
@@ -72,11 +69,9 @@
   "student.action.view_breakdown": "View calculation breakdown",
   "student.hint.graduation": "Graduation date is required only after graduation.",
   "student.hint.withdrawal": "Withdrawal date is required only for withdrawn students.",
-
   "import.title": "Import Errors",
   "import.file": "File",
   "import.back": "Back to Students",
-
   "config.title": "Configuration",
   "config.current_version": "Current version",
   "config.updated_at": "Updated at",
@@ -92,12 +87,11 @@
   "config.rounding_policy": "Rounding policy",
   "config.rounding_final_only": "Final only (round CNY only)",
   "config.rounding_two_step": "Two-step (round USD then round CNY)",
-  "config.policy": "Issue study allowance if exit before October in entry year",
+  "config.policy": "Issue study allowance if exit before study month in entry year",
   "config.withdrawn_living_default": "Default pay living allowance in withdrawal month",
   "config.rounding": "Rounding mode",
   "config.rounding_fixed": "fixed",
   "config.action.save": "Save config",
-
   "reports.title": "Calculation Results",
   "reports.filter.student": "Student ID",
   "reports.filter.year": "Year (YYYY)",
@@ -120,19 +114,15 @@
   "reports.table.description": "Description",
   "reports.table.metadata": "Metadata",
   "reports.table.none": "No records found",
-
   "status.in_study": "In-study",
   "status.graduated": "Graduated",
   "status.withdrawn": "Withdrawn",
-
   "degree.bachelor": "Bachelor",
   "degree.master": "Master",
   "degree.phd": "PhD",
-
   "allowance.living": "Living allowance",
   "allowance.study": "Study allowance",
   "allowance.baggage": "Baggage allowance",
-
   "errors.invalid_degree": "Invalid degree level",
   "errors.invalid_status": "Invalid status",
   "errors.invalid_entry": "Invalid first entry date",
@@ -156,11 +146,9 @@
   "warnings.baggage_missing_graduation": "Student {student_id} is missing graduation date; baggage allowance not paid.",
   "warnings.baggage_before_graduation": "Student {student_id} is before graduation month; baggage allowance not paid.",
   "warnings.withdrawal_toggle_invalid": "Student {student_id} is not in withdrawal month; selection ignored.",
-
   "run.label.manual_all": "Manual run (all students)",
   "run.label.manual_student": "Manual run: {student_id}",
   "run.label.monthly_settlement": "Monthly settlement",
-
   "export.header.student_id": "Student ID",
   "export.header.run_id": "Run ID",
   "export.header.settlement_month": "Settlement month",
@@ -173,5 +161,7 @@
   "export.header.rule_id": "Rule ID",
   "export.header.description": "Description",
   "export.header.metadata": "Metadata",
-  "export.sheet": "Settlement"
+  "export.sheet": "Settlement",
+  "config.study_month": "Study allowance month",
+  "config.issue_entry_month": "Issue study allowance in entry month"
 }

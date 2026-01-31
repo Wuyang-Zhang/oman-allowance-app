@@ -46,5 +46,9 @@ def year_october_first(year: int) -> date:
     return date(year, 10, 1)
 
 
+def year_month_first(year: int, month: int) -> date:
+    return date(year, month, 1)
+
+
 def date_range_to_years(start: date, end: date) -> Tuple[int, ...]:
     return tuple(range(start.year, end.year + 1))

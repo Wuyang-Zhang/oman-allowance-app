@@ -6,7 +6,6 @@
   "nav.language": "语言",
   "lang.zh": "中文",
   "lang.en": "English",
-
   "dashboard.title": "仪表盘",
   "dashboard.fx_block": "当前汇率与舍入",
   "dashboard.fx_rate": "USD → CNY 汇率",
@@ -36,7 +35,6 @@
   "dashboard.special.withdrawal": "退学当月生活补助",
   "dashboard.special.withdrawal_toggle": "本月发放生活补助",
   "dashboard.special.none": "本月无特殊发放",
-
   "students.title": "学生",
   "students.search.placeholder": "按学号或姓名搜索",
   "students.filter.degree": "全部学位",
@@ -58,7 +56,6 @@
   "students.action.calculate": "结算本月",
   "students.action.export_csv": "导出 CSV",
   "students.action.export_xlsx": "导出 Excel",
-
   "student.detail.title": "学生详情",
   "student.field.student_id": "学号",
   "student.field.name": "姓名",
@@ -72,11 +69,9 @@
   "student.action.view_breakdown": "查看计算明细",
   "student.hint.graduation": "在读学生无需填写毕业日期",
   "student.hint.withdrawal": "仅退学学生需要填写退学日期",
-
   "import.title": "导入错误",
   "import.file": "文件",
   "import.back": "返回学生列表",
-
   "config.title": "配置",
   "config.current_version": "当前版本",
   "config.updated_at": "更新时间",
@@ -92,12 +87,11 @@
   "config.rounding_policy": "舍入方式",
   "config.rounding_final_only": "仅最终人民币保留两位（推荐）",
   "config.rounding_two_step": "两步舍入：美元先保留两位，再换算人民币（兼容旧规则）",
-  "config.policy": "入境年 10 月前毕业/退学也发放学习补助",
+  "config.policy": "???????????/?????????",
   "config.withdrawn_living_default": "退学当月生活补助默认发放",
   "config.rounding": "舍入方式",
   "config.rounding_fixed": "固定",
   "config.action.save": "保存配置",
-
   "reports.title": "计算结果",
   "reports.filter.student": "学号",
   "reports.filter.year": "年份（YYYY）",
@@ -120,19 +114,15 @@
   "reports.table.description": "说明",
   "reports.table.metadata": "元数据",
   "reports.table.none": "暂无记录",
-
   "status.in_study": "在读",
   "status.graduated": "毕业",
   "status.withdrawn": "退学",
-
   "degree.bachelor": "本科",
   "degree.master": "硕士",
   "degree.phd": "博士",
-
   "allowance.living": "生活补助",
   "allowance.study": "学习补助",
   "allowance.baggage": "行李补助",
-
   "errors.invalid_degree": "学位无效",
   "errors.invalid_status": "状态无效",
   "errors.invalid_entry": "首次入境日期无效",
@@ -156,11 +146,9 @@
   "warnings.baggage_missing_graduation": "学生 {student_id} 缺少毕业日期，行李补助未发放。",
   "warnings.baggage_before_graduation": "学生 {student_id} 未到毕业月份，行李补助未发放。",
   "warnings.withdrawal_toggle_invalid": "学生 {student_id} 非退学当月，已忽略生活补助选择。",
-
   "run.label.manual_all": "手动全量计算",
   "run.label.manual_student": "手动计算：{student_id}",
   "run.label.monthly_settlement": "月度结算",
-
   "export.header.student_id": "学号",
   "export.header.run_id": "运行编号",
   "export.header.settlement_month": "结算月份",
@@ -173,5 +161,7 @@
   "export.header.rule_id": "规则编号",
   "export.header.description": "规则说明",
   "export.header.metadata": "元数据",
-  "export.sheet": "结算"
+  "export.sheet": "结算",
+  "config.study_month": "????????",
+  "config.issue_entry_month": "??????????"
 }

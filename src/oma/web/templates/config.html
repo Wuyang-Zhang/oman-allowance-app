@@ -18,6 +18,12 @@
       <h3>{{ t("config.other_title") }}</h3>
       <label>{{ t("config.study") }}</label>
       <input name="study_allowance" value="{{ config.study_allowance_usd }}" required />
+      <label>{{ t("config.study_month") }}</label>
+      <select name="study_allowance_month">
+        {% for m in range(1, 13) %}
+          <option value="{{ m }}" {% if config.study_allowance_month == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
       <label>{{ t("config.baggage") }}</label>
       <input name="baggage_allowance" value="{{ config.baggage_allowance_usd }}" required />
 
@@ -32,6 +38,10 @@
       <label>
         <input type="checkbox" name="issue_study_if_exit_before_oct_entry_year" value="1" {% if config.issue_study_if_exit_before_oct_entry_year %}checked{% endif %} />
         {{ t("config.policy") }}
+      </label>
+      <label>
+        <input type="checkbox" name="issue_study_if_entry_month" value="1" {% if config.issue_study_if_entry_month %}checked{% endif %} />
+        {{ t("config.issue_entry_month") }}
       </label>
       <label>
         <input type="checkbox" name="withdrawn_living_default" value="1" {% if config.withdrawn_living_default %}checked{% endif %} />

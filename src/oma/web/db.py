@@ -25,6 +25,8 @@ class DbConfigRow:
     living_allowance_phd: str
     study_allowance_usd: str
     baggage_allowance_usd: str
+    study_allowance_month: int
+    issue_study_if_entry_month: int
     issue_study_if_exit_before_oct_entry_year: int
     withdrawn_living_default: int
     fx_rate_usd_to_cny: str
@@ -86,6 +88,8 @@ def init_db(conn: sqlite3.Connection) -> None:
             living_allowance_phd TEXT NOT NULL,
             study_allowance_usd TEXT NOT NULL,
             baggage_allowance_usd TEXT NOT NULL,
+            study_allowance_month INTEGER NOT NULL DEFAULT 10,
+            issue_study_if_entry_month INTEGER NOT NULL DEFAULT 0,
             issue_study_if_exit_before_oct_entry_year INTEGER NOT NULL,
             withdrawn_living_default INTEGER NOT NULL,
             fx_rate_usd_to_cny TEXT NOT NULL,
@@ -138,7 +142,27 @@ def init_db(conn: sqlite3.Connection) -> None:
     _migrate_records_add_settlement(conn)
     _migrate_configs_add_withdrawn_default(conn)
     _migrate_configs_add_rounding_policy(conn)
+    _migrate_configs_add_study_month(conn)
+    _migrate_configs_add_entry_month_flag(conn)
     _ensure_default_config(conn)
+
+
+def _migrate_configs_add_study_month(conn: sqlite3.Connection) -> None:
+    cur = conn.execute("PRAGMA table_info(configs)")
+    columns = [row["name"] for row in cur.fetchall()]
+    if "study_allowance_month" in columns:
+        return
+    conn.execute("ALTER TABLE configs ADD COLUMN study_allowance_month INTEGER NOT NULL DEFAULT 10")
+    conn.commit()
+
+
+def _migrate_configs_add_entry_month_flag(conn: sqlite3.Connection) -> None:
+    cur = conn.execute("PRAGMA table_info(configs)")
+    columns = [row["name"] for row in cur.fetchall()]
+    if "issue_study_if_entry_month" in columns:
+        return
+    conn.execute("ALTER TABLE configs ADD COLUMN issue_study_if_entry_month INTEGER NOT NULL DEFAULT 0")
+    conn.commit()
 
 
 def _migrate_configs_add_rounding_policy(conn: sqlite3.Connection) -> None:
@@ -339,6 +363,8 @@ def save_config(conn: sqlite3.Connection, config: AllowanceConfig, withdrawn_liv
         str(config.living_allowance_by_degree[DegreeLevel.PHD]),
         str(config.study_allowance_usd),
         str(config.baggage_allowance_usd),
+        int(config.study_allowance_month),
+        1 if config.issue_study_if_entry_month else 0,
         1 if config.issue_study_if_exit_before_oct_entry_year else 0,
         1 if withdrawn_living_default else 0,
         str(config.fx_rate_usd_to_cny),
@@ -356,6 +382,8 @@ def save_config(conn: sqlite3.Connection, config: AllowanceConfig, withdrawn_liv
             living_allowance_phd,
             study_allowance_usd,
             baggage_allowance_usd,
+            study_allowance_month,
+            issue_study_if_entry_month,
             issue_study_if_exit_before_oct_entry_year,
             withdrawn_living_default,
             fx_rate_usd_to_cny,
@@ -363,7 +391,7 @@ def save_config(conn: sqlite3.Connection, config: AllowanceConfig, withdrawn_liv
             cny_quantize,
             rounding_mode,
             rounding_policy
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         row,
     )
@@ -396,6 +424,8 @@ def config_row_to_model(row: DbConfigRow) -> AllowanceConfig:
         },
         study_allowance_usd=Decimal(row.study_allowance_usd),
         baggage_allowance_usd=Decimal(row.baggage_allowance_usd),
+        study_allowance_month=int(getattr(row, "study_allowance_month", 10) or 10),
+        issue_study_if_entry_month=bool(getattr(row, "issue_study_if_entry_month", 0)),
         issue_study_if_exit_before_oct_entry_year=bool(row.issue_study_if_exit_before_oct_entry_year),
         fx_rate_usd_to_cny=Decimal(row.fx_rate_usd_to_cny),
         usd_quantize=Decimal(row.usd_quantize),

@@ -14,6 +14,8 @@ class AllowanceConfig:
     living_allowance_by_degree: Dict[DegreeLevel, Decimal]
     study_allowance_usd: Decimal
     baggage_allowance_usd: Decimal
+    study_allowance_month: int
+    issue_study_if_entry_month: bool
     issue_study_if_exit_before_oct_entry_year: bool
     fx_rate_usd_to_cny: Decimal
     usd_quantize: Decimal
@@ -31,6 +33,8 @@ class AllowanceConfig:
             },
             study_allowance_usd=Decimal("800.00"),
             baggage_allowance_usd=Decimal("1200.00"),
+            study_allowance_month=10,
+            issue_study_if_entry_month=False,
             issue_study_if_exit_before_oct_entry_year=False,
             fx_rate_usd_to_cny=Decimal("7.10"),
             usd_quantize=Decimal("0.01"),

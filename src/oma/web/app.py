@@ -254,37 +254,53 @@ def _monthly_records_for_student(
                         "Living allowance for withdrawal month (toggle)",
                     )
 
-    # Study allowance (October only)
-    if settlement_month.month == 10:
-        oct_first = date(settlement_month.year, 10, 1)
+    # Study allowance
+    if settlement_month.month == config.study_allowance_month:
+        target_first = date(settlement_month.year, config.study_allowance_month, 1)
         special_case = False
-        qualifies_oct = False
+        qualifies_month = False
+        entry_month_override = False
         if student.status == Status.IN_STUDY:
-            qualifies_oct = student.first_entry_date <= oct_first
+            qualifies_month = student.first_entry_date <= target_first
         elif student.status == Status.GRADUATED and student.graduation_date:
-            qualifies_oct = student.first_entry_date <= oct_first <= student.graduation_date
+            qualifies_month = student.first_entry_date <= target_first <= student.graduation_date
         elif student.status == Status.WITHDRAWN and student.withdrawal_date:
             special_case = (
                 student.first_entry_date.year == settlement_month.year
-                and student.withdrawal_date < oct_first
+                and student.withdrawal_date < target_first
                 and config.issue_study_if_exit_before_oct_entry_year
             )
-        if qualifies_oct or special_case:
-            rule_id = "STUDY_OCT_IN_STUDY" if qualifies_oct else "STUDY_ENTRY_YEAR_OVERRIDE"
-            description = "Study allowance issued for October in-study" if qualifies_oct else "Study allowance issued by entry-year override"
+        if (
+            config.issue_study_if_entry_month
+            and student.first_entry_date.year == settlement_month.year
+            and student.first_entry_date.month == settlement_month.month
+        ):
+            entry_month_override = True
+        if qualifies_month or entry_month_override or special_case:
+            if special_case:
+                rule_id = "STUDY_ENTRY_YEAR_OVERRIDE"
+                description = "Study allowance issued by entry-year override"
+            elif entry_month_override and not qualifies_month:
+                rule_id = "STUDY_ENTRY_MONTH"
+                description = "Study allowance issued for entry month"
+            else:
+                rule_id = "STUDY_MONTH_IN_STUDY"
+                description = "Study allowance issued for study month in-study"
             money = ctx.to_money(config.study_allowance_usd, round_usd=False)
             records.append(
                 AllowanceRecord(
                     student_id=student.student_id,
                     allowance_type=AllowanceType.STUDY,
-                    period_start=oct_first,
-                    period_end=oct_first,
+                    period_start=target_first,
+                    period_end=target_first,
                     amount=money,
                     rule_id=rule_id,
                     description=description,
                     metadata={
                         "year": str(settlement_month.year),
-                        "qualifies_oct": str(qualifies_oct),
+                        "study_month": str(config.study_allowance_month),
+                        "qualifies_month": str(qualifies_month),
+                        "entry_month_override": str(entry_month_override),
                         "special_case": str(special_case),
                         "rounding_policy": config.rounding_policy,
                     },
@@ -690,6 +706,8 @@ def config_save(
     study_allowance: str = Form(...),
     baggage_allowance: str = Form(...),
     fx_rate: str = Form(...),
+    study_allowance_month: int = Form(10),
+    issue_study_if_entry_month: Optional[str] = Form(None),
     issue_study_if_exit_before_oct_entry_year: Optional[str] = Form(None),
     withdrawn_living_default: Optional[str] = Form(None),
     rounding_policy: str = Form("final_only"),
@@ -702,6 +720,8 @@ def config_save(
         },
         study_allowance_usd=Decimal(study_allowance),
         baggage_allowance_usd=Decimal(baggage_allowance),
+        study_allowance_month=int(study_allowance_month),
+        issue_study_if_entry_month=bool(issue_study_if_entry_month),
         issue_study_if_exit_before_oct_entry_year=bool(issue_study_if_exit_before_oct_entry_year),
         fx_rate_usd_to_cny=Decimal(fx_rate),
         usd_quantize=Decimal("0.01"),

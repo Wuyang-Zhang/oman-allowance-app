@@ -13,7 +13,7 @@ from .utils import (
     month_end,
     proration_fraction,
     quantize_amount,
-    year_october_first,
+    year_month_first,
 )
 
 
@@ -113,34 +113,51 @@ def _calculate_study_allowance(student: Student, ctx: CalculationContext, calc_d
     records: List[AllowanceRecord] = []
     exit_date = calc_date if student.status == Status.IN_STUDY else (student.graduation_date or calc_date)
     for year in date_range_to_years(student.first_entry_date, exit_date):
-        oct_first = year_october_first(year)
-        qualifies_oct = False
+        target_first = year_month_first(year, ctx.config.study_allowance_month)
+        qualifies_month = False
+        entry_month_override = False
         if student.status == Status.IN_STUDY:
-            qualifies_oct = student.first_entry_date <= oct_first <= exit_date
+            qualifies_month = student.first_entry_date <= target_first <= exit_date
         elif student.status in (Status.GRADUATED, Status.WITHDRAWN) and student.graduation_date is not None:
-            qualifies_oct = student.first_entry_date <= oct_first <= student.graduation_date
+            qualifies_month = student.first_entry_date <= target_first <= student.graduation_date
+        if (
+            ctx.config.issue_study_if_entry_month
+            and student.first_entry_date.year == year
+            and student.first_entry_date.month == ctx.config.study_allowance_month
+            and student.first_entry_date <= exit_date
+        ):
+            entry_month_override = True
         special_case = (
             student.status in (Status.GRADUATED, Status.WITHDRAWN)
             and year == student.first_entry_date.year
-            and exit_date < year_october_first(student.first_entry_date.year)
+            and exit_date < year_month_first(student.first_entry_date.year, ctx.config.study_allowance_month)
             and ctx.config.issue_study_if_exit_before_oct_entry_year
         )
-        if qualifies_oct or special_case:
-            rule_id = "STUDY_OCT_IN_STUDY" if qualifies_oct else "STUDY_ENTRY_YEAR_OVERRIDE"
-            description = "Study allowance issued for October in-study" if qualifies_oct else "Study allowance issued by entry-year override"
+        if qualifies_month or entry_month_override or special_case:
+            if special_case:
+                rule_id = "STUDY_ENTRY_YEAR_OVERRIDE"
+                description = "Study allowance issued by entry-year override"
+            elif entry_month_override and not qualifies_month:
+                rule_id = "STUDY_ENTRY_MONTH"
+                description = "Study allowance issued for entry month"
+            else:
+                rule_id = "STUDY_MONTH_IN_STUDY"
+                description = "Study allowance issued for study month in-study"
             money = ctx.to_money(ctx.config.study_allowance_usd, round_usd=False)
             records.append(
                 AllowanceRecord(
                     student_id=student.student_id,
                     allowance_type=AllowanceType.STUDY,
-                    period_start=oct_first,
-                    period_end=oct_first,
+                    period_start=target_first,
+                    period_end=target_first,
                     amount=money,
                     rule_id=rule_id,
                     description=description,
                     metadata={
                         "year": str(year),
-                        "qualifies_oct": str(qualifies_oct),
+                        "study_month": str(ctx.config.study_allowance_month),
+                        "qualifies_month": str(qualifies_month),
+                        "entry_month_override": str(entry_month_override),
                         "special_case": str(special_case),
                         "rounding_policy": ctx.config.rounding_policy,
                     },
