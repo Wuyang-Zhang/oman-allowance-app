@@ -1,4 +1,4 @@
-from oma.gui_web.app import run
+from oma.gui.app import run
 
 
 if __name__ == "__main__":
