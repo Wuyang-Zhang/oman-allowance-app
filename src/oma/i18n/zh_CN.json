@@ -189,5 +189,10 @@
   "config.hint.study_month": "用于发放学习补助的月份。",
   "config.hint.entry_month": "若入境月份等于发放月份，按此开关决定是否发放。",
   "export.header.study_month": "学习补助发放月份",
-  "export.header.issue_entry_month": "入境当月发放学习补助"
+  "export.header.issue_entry_month": "入境当月发放学习补助",
+  "students.duplicate_title": "学号已存在",
+  "students.duplicate_body": "该学号已存在。是否覆盖？\n是：覆盖\n否：进入编辑\n取消：不操作",
+  "students.duplicate_overwrite": "覆盖",
+  "students.duplicate_edit": "进入编辑",
+  "students.duplicate_cancel": "取消"
 }

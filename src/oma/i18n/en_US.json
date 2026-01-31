@@ -189,5 +189,10 @@
   "config.hint.study_month": "Month used to issue the study allowance.",
   "config.hint.entry_month": "When entry month matches, issue study allowance if enabled.",
   "export.header.study_month": "Study allowance month",
-  "export.header.issue_entry_month": "Issue study allowance in entry month"
+  "export.header.issue_entry_month": "Issue study allowance in entry month",
+  "students.duplicate_title": "Student ID already exists",
+  "students.duplicate_body": "This student ID already exists. Do you want to overwrite it?\nYes: overwrite\nNo: open edit\nCancel: do nothing",
+  "students.duplicate_overwrite": "Overwrite",
+  "students.duplicate_edit": "Edit existing",
+  "students.duplicate_cancel": "Cancel"
 }

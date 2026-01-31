@@ -1215,6 +1215,32 @@ class MainWindow(QMainWindow):
         if dialog.exec():
             student = dialog.get_student()
             if student:
+                existing = db.get_student(self.conn, student.student_id)
+                if existing:
+                    box = QMessageBox(self)
+                    box.setIcon(QMessageBox.Warning)
+                    box.setWindowTitle(self.translator.t("students.duplicate_title"))
+                    box.setText(self.translator.t("students.duplicate_title"))
+                    box.setInformativeText(self.translator.t("students.duplicate_body"))
+                    overwrite_btn = box.addButton(
+                        self.translator.t("students.duplicate_overwrite"), QMessageBox.AcceptRole
+                    )
+                    edit_btn = box.addButton(
+                        self.translator.t("students.duplicate_edit"), QMessageBox.ActionRole
+                    )
+                    cancel_btn = box.addButton(
+                        self.translator.t("students.duplicate_cancel"), QMessageBox.RejectRole
+                    )
+                    box.setDefaultButton(edit_btn)
+                    box.exec()
+                    clicked = box.clickedButton()
+                    if clicked == overwrite_btn:
+                        db.upsert_student(self.conn, student)
+                        self._load_students()
+                        self._set_student_saved()
+                    elif clicked == edit_btn:
+                        self._edit_student_by_id(student.student_id)
+                    return
                 db.upsert_student(self.conn, student)
                 self._load_students()
                 self._set_student_saved()
@@ -1224,6 +1250,9 @@ class MainWindow(QMainWindow):
         if row < 0:
             return
         student_id = self.students_table.item(row, 0).text()
+        self._edit_student_by_id(student_id)
+
+    def _edit_student_by_id(self, student_id: str) -> None:
         student = db.get_student(self.conn, student_id)
         if not student:
             return
