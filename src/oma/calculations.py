@@ -21,8 +21,8 @@ from .utils import (
 class CalculationContext:
     config: AllowanceConfig
 
-    def to_money(self, usd: Decimal) -> MoneyAmount:
-        usd_q = quantize_amount(usd, self.config.usd_quantize, self.config.rounding_mode)
+    def to_money(self, usd: Decimal, *, round_usd: bool = False) -> MoneyAmount:
+        usd_q = quantize_amount(usd, self.config.usd_quantize, self.config.rounding_mode) if round_usd else usd
         cny = usd_q * self.config.fx_rate_usd_to_cny
         cny_q = quantize_amount(cny, self.config.cny_quantize, self.config.rounding_mode)
         return MoneyAmount(usd=usd_q, cny=cny_q)
@@ -73,7 +73,8 @@ def _calculate_living_allowance(student: Student, ctx: CalculationContext, calc_
         if month_start.year == student.first_entry_date.year and month_start.month == student.first_entry_date.month:
             fraction = proration_fraction(student.first_entry_date)
             usd = monthly_usd * fraction
-            money = ctx.to_money(usd)
+            round_usd = ctx.config.rounding_policy == "two_step"
+            money = ctx.to_money(usd, round_usd=round_usd)
             records.append(
                 AllowanceRecord(
                     student_id=student.student_id,
@@ -87,11 +88,12 @@ def _calculate_living_allowance(student: Student, ctx: CalculationContext, calc_
                         "monthly_usd": str(monthly_usd),
                         "fraction": str(fraction),
                         "entry_date": student.first_entry_date.isoformat(),
+                        "rounding_policy": ctx.config.rounding_policy,
                     },
                 )
             )
         else:
-            money = ctx.to_money(monthly_usd)
+            money = ctx.to_money(monthly_usd, round_usd=False)
             records.append(
                 AllowanceRecord(
                     student_id=student.student_id,
@@ -101,7 +103,7 @@ def _calculate_living_allowance(student: Student, ctx: CalculationContext, calc_
                     amount=money,
                     rule_id="LIVING_FULL_MONTH",
                     description="Full monthly living allowance",
-                    metadata={"monthly_usd": str(monthly_usd)},
+                    metadata={"monthly_usd": str(monthly_usd), "rounding_policy": ctx.config.rounding_policy},
                 )
             )
     return records
@@ -126,7 +128,7 @@ def _calculate_study_allowance(student: Student, ctx: CalculationContext, calc_d
         if qualifies_oct or special_case:
             rule_id = "STUDY_OCT_IN_STUDY" if qualifies_oct else "STUDY_ENTRY_YEAR_OVERRIDE"
             description = "Study allowance issued for October in-study" if qualifies_oct else "Study allowance issued by entry-year override"
-            money = ctx.to_money(ctx.config.study_allowance_usd)
+            money = ctx.to_money(ctx.config.study_allowance_usd, round_usd=False)
             records.append(
                 AllowanceRecord(
                     student_id=student.student_id,
@@ -140,6 +142,7 @@ def _calculate_study_allowance(student: Student, ctx: CalculationContext, calc_d
                         "year": str(year),
                         "qualifies_oct": str(qualifies_oct),
                         "special_case": str(special_case),
+                        "rounding_policy": ctx.config.rounding_policy,
                     },
                 )
             )
@@ -149,7 +152,7 @@ def _calculate_study_allowance(student: Student, ctx: CalculationContext, calc_d
 def _calculate_baggage_allowance(student: Student, ctx: CalculationContext) -> List[AllowanceRecord]:
     if student.status != Status.GRADUATED:
         return []
-    money = ctx.to_money(ctx.config.baggage_allowance_usd)
+    money = ctx.to_money(ctx.config.baggage_allowance_usd, round_usd=False)
     return [
         AllowanceRecord(
             student_id=student.student_id,
@@ -159,6 +162,9 @@ def _calculate_baggage_allowance(student: Student, ctx: CalculationContext) -> L
             amount=money,
             rule_id="BAGGAGE_ON_GRADUATION",
             description="One-time excess baggage allowance after graduation",
-            metadata={"graduation_date": student.graduation_date.isoformat()},
+            metadata={
+                "graduation_date": student.graduation_date.isoformat(),
+                "rounding_policy": ctx.config.rounding_policy,
+            },
         )
     ]

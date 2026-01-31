@@ -170,7 +170,8 @@ def _monthly_records_for_student(
         usd = monthly_usd * fraction
         if prorated:
             metadata = {**metadata, "fraction": str(fraction)}
-        money = ctx.to_money(usd)
+        round_usd = prorated and config.rounding_policy == "two_step"
+        money = ctx.to_money(usd, round_usd=round_usd)
         records.append(
             AllowanceRecord(
                 student_id=student.student_id,
@@ -180,7 +181,7 @@ def _monthly_records_for_student(
                 amount=money,
                 rule_id=rule_id,
                 description=description,
-                metadata=metadata,
+                metadata={**metadata, "rounding_policy": config.rounding_policy},
             )
         )
 
@@ -270,7 +271,7 @@ def _monthly_records_for_student(
         if qualifies_oct or special_case:
             rule_id = "STUDY_OCT_IN_STUDY" if qualifies_oct else "STUDY_ENTRY_YEAR_OVERRIDE"
             description = "Study allowance issued for October in-study" if qualifies_oct else "Study allowance issued by entry-year override"
-            money = ctx.to_money(config.study_allowance_usd)
+            money = ctx.to_money(config.study_allowance_usd, round_usd=False)
             records.append(
                 AllowanceRecord(
                     student_id=student.student_id,
@@ -284,6 +285,7 @@ def _monthly_records_for_student(
                         "year": str(settlement_month.year),
                         "qualifies_oct": str(qualifies_oct),
                         "special_case": str(special_case),
+                        "rounding_policy": config.rounding_policy,
                     },
                 )
             )
@@ -296,19 +298,23 @@ def _monthly_records_for_student(
             if settlement_month < _month_start(student.graduation_date):
                 warnings.append(translate(lang, "warnings.baggage_before_graduation", student_id=student.student_id))
                 return records, warnings
-            money = ctx.to_money(config.baggage_allowance_usd)
-            records.append(
-                AllowanceRecord(
+                money = ctx.to_money(config.baggage_allowance_usd, round_usd=False)
+                records.append(
+                    AllowanceRecord(
                     student_id=student.student_id,
                     allowance_type=AllowanceType.BAGGAGE,
                     period_start=student.graduation_date,
                     period_end=student.graduation_date,
                     amount=money,
-                    rule_id="BAGGAGE_ON_GRADUATION",
-                    description="One-time excess baggage allowance after graduation",
-                    metadata={"baggage_toggle": "true", "settlement_month": settlement_month.isoformat()},
+                        rule_id="BAGGAGE_ON_GRADUATION",
+                        description="One-time excess baggage allowance after graduation",
+                        metadata={
+                            "baggage_toggle": "true",
+                            "settlement_month": settlement_month.isoformat(),
+                            "rounding_policy": config.rounding_policy,
+                        },
+                    )
                 )
-            )
 
     return records, warnings
 
@@ -685,6 +691,7 @@ def config_save(
     fx_rate: str = Form(...),
     issue_study_if_exit_before_oct_entry_year: Optional[str] = Form(None),
     withdrawn_living_default: Optional[str] = Form(None),
+    rounding_policy: str = Form("final_only"),
 ) -> RedirectResponse:
     config = AllowanceConfig(
         living_allowance_by_degree={
@@ -699,6 +706,7 @@ def config_save(
         usd_quantize=Decimal("0.01"),
         cny_quantize=Decimal("0.01"),
         rounding_mode="ROUND_HALF_UP",
+        rounding_policy=rounding_policy,
     )
     conn = db.get_connection()
     try:

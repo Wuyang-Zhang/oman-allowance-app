@@ -19,6 +19,7 @@ class AllowanceConfig:
     usd_quantize: Decimal
     cny_quantize: Decimal
     rounding_mode: str
+    rounding_policy: str
 
     @staticmethod
     def default() -> "AllowanceConfig":
@@ -35,4 +36,5 @@ class AllowanceConfig:
             usd_quantize=Decimal("0.01"),
             cny_quantize=Decimal("0.01"),
             rounding_mode=ROUND_HALF_UP,
+            rounding_policy="final_only",
         )

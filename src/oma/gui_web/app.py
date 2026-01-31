@@ -166,6 +166,7 @@ class Backend(QObject):
             usd_quantize="0.01",
             cny_quantize="0.01",
             rounding_mode="ROUND_HALF_UP",
+            rounding_policy=data.get("rounding_policy", "final_only"),
         )
         db.save_config(self.conn, config, withdrawn_living_default=data["withdrawn_default"])
         return json.dumps({"ok": True})

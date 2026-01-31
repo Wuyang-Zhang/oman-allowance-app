@@ -82,7 +82,8 @@ def _student_records(
         usd = monthly_usd * fraction
         if prorated:
             metadata = {**metadata, "fraction": str(fraction)}
-        money = ctx.to_money(usd)
+        round_usd = prorated and config.rounding_policy == "two_step"
+        money = ctx.to_money(usd, round_usd=round_usd)
         items.append(
             AllowanceRecord(
                 student_id=student.student_id,
@@ -92,7 +93,7 @@ def _student_records(
                 amount=money,
                 rule_id=rule_id,
                 description=description,
-                metadata=metadata,
+                metadata={**metadata, "rounding_policy": config.rounding_policy},
             )
         )
 
@@ -183,7 +184,7 @@ def _student_records(
         if qualifies_oct or special_case:
             rule_id = "STUDY_OCT_IN_STUDY" if qualifies_oct else "STUDY_ENTRY_YEAR_OVERRIDE"
             description = "Study allowance issued for October in-study" if qualifies_oct else "Study allowance issued by entry-year override"
-            money = ctx.to_money(config.study_allowance_usd)
+            money = ctx.to_money(config.study_allowance_usd, round_usd=False)
             items.append(
                 AllowanceRecord(
                     student_id=student.student_id,
@@ -197,6 +198,7 @@ def _student_records(
                         "year": str(settlement_month.year),
                         "qualifies_oct": str(qualifies_oct),
                         "special_case": str(special_case),
+                        "rounding_policy": config.rounding_policy,
                     },
                 )
             )
@@ -209,7 +211,7 @@ def _student_records(
             if settlement_month < month_start(student.graduation_date):
                 warnings.append(f"{student.student_id}: before graduation month")
             else:
-                money = ctx.to_money(config.baggage_allowance_usd)
+                money = ctx.to_money(config.baggage_allowance_usd, round_usd=False)
                 items.append(
                     AllowanceRecord(
                         student_id=student.student_id,
@@ -219,7 +221,11 @@ def _student_records(
                         amount=money,
                         rule_id="BAGGAGE_ON_GRADUATION",
                         description="One-time excess baggage allowance after graduation",
-                        metadata={"baggage_toggle": "true", "settlement_month": settlement_month.isoformat()},
+                        metadata={
+                            "baggage_toggle": "true",
+                            "settlement_month": settlement_month.isoformat(),
+                            "rounding_policy": config.rounding_policy,
+                        },
                     )
                 )
 

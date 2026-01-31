@@ -21,6 +21,7 @@ class AllowanceCalculationTests(unittest.TestCase):
             usd_quantize=Decimal("0.01"),
             cny_quantize=Decimal("0.01"),
             rounding_mode=ROUND_HALF_UP,
+            rounding_policy="two_step",
         )
         student = Student(
             student_id="S001",
@@ -51,7 +52,7 @@ class AllowanceCalculationTests(unittest.TestCase):
         self.assertEqual(len(living), 3)
         # Jan prorate (22/31), Feb full, Mar full
         monthly = config.living_allowance_by_degree[DegreeLevel.MASTER]
-        expected = (monthly * Decimal(22) / Decimal(31)).quantize(Decimal("0.01")) + monthly * 2
+        expected = (monthly * Decimal(22) / Decimal(31)) + monthly * 2
         total = sum(r.amount.usd for r in living)
         self.assertEqual(total, expected)
 
@@ -94,6 +95,7 @@ class AllowanceCalculationTests(unittest.TestCase):
             usd_quantize=config.usd_quantize,
             cny_quantize=config.cny_quantize,
             rounding_mode=config.rounding_mode,
+            rounding_policy=config.rounding_policy,
         )
         result_override = calculate_student_allowances(student, override_config)
         study_override = [r for r in result_override.records if r.allowance_type.value == "Study"]
@@ -110,6 +112,7 @@ class AllowanceCalculationTests(unittest.TestCase):
             usd_quantize=Decimal("0.01"),
             cny_quantize=Decimal("0.01"),
             rounding_mode=ROUND_HALF_UP,
+            rounding_policy="two_step",
         )
         student = Student(
             student_id="S005",

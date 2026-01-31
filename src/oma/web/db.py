@@ -31,6 +31,7 @@ class DbConfigRow:
     usd_quantize: str
     cny_quantize: str
     rounding_mode: str
+    rounding_policy: str
 
 
 @dataclass(frozen=True)
@@ -90,7 +91,8 @@ def init_db(conn: sqlite3.Connection) -> None:
             fx_rate_usd_to_cny TEXT NOT NULL,
             usd_quantize TEXT NOT NULL,
             cny_quantize TEXT NOT NULL,
-            rounding_mode TEXT NOT NULL
+            rounding_mode TEXT NOT NULL,
+            rounding_policy TEXT NOT NULL DEFAULT 'final_only'
         );
 
         CREATE TABLE IF NOT EXISTS calculation_runs (
@@ -135,7 +137,17 @@ def init_db(conn: sqlite3.Connection) -> None:
     _migrate_runs_add_settlement(conn)
     _migrate_records_add_settlement(conn)
     _migrate_configs_add_withdrawn_default(conn)
+    _migrate_configs_add_rounding_policy(conn)
     _ensure_default_config(conn)
+
+
+def _migrate_configs_add_rounding_policy(conn: sqlite3.Connection) -> None:
+    cur = conn.execute("PRAGMA table_info(configs)")
+    columns = [row["name"] for row in cur.fetchall()]
+    if "rounding_policy" in columns:
+        return
+    conn.execute("ALTER TABLE configs ADD COLUMN rounding_policy TEXT NOT NULL DEFAULT 'final_only'")
+    conn.commit()
 
 
 def _migrate_students_nullable_graduation(conn: sqlite3.Connection) -> None:
@@ -291,16 +303,17 @@ def _migrate_configs_add_withdrawn_default(conn: sqlite3.Connection) -> None:
             fx_rate_usd_to_cny TEXT NOT NULL,
             usd_quantize TEXT NOT NULL,
             cny_quantize TEXT NOT NULL,
-            rounding_mode TEXT NOT NULL
+            rounding_mode TEXT NOT NULL,
+            rounding_policy TEXT NOT NULL DEFAULT 'final_only'
         );
         INSERT INTO configs (
             version, updated_at, living_allowance_bachelor, living_allowance_master, living_allowance_phd,
             study_allowance_usd, baggage_allowance_usd, issue_study_if_exit_before_oct_entry_year,
-            withdrawn_living_default, fx_rate_usd_to_cny, usd_quantize, cny_quantize, rounding_mode
+            withdrawn_living_default, fx_rate_usd_to_cny, usd_quantize, cny_quantize, rounding_mode, rounding_policy
         )
         SELECT version, updated_at, living_allowance_bachelor, living_allowance_master, living_allowance_phd,
             study_allowance_usd, baggage_allowance_usd, issue_study_if_exit_before_oct_entry_year,
-            0 as withdrawn_living_default, fx_rate_usd_to_cny, usd_quantize, cny_quantize, rounding_mode
+            0 as withdrawn_living_default, fx_rate_usd_to_cny, usd_quantize, cny_quantize, rounding_mode, 'final_only' as rounding_policy
         FROM configs_old;
         DROP TABLE configs_old;
         """
@@ -332,6 +345,7 @@ def save_config(conn: sqlite3.Connection, config: AllowanceConfig, withdrawn_liv
         str(config.usd_quantize),
         str(config.cny_quantize),
         str(config.rounding_mode),
+        str(config.rounding_policy),
     )
     cur = conn.execute(
         """
@@ -347,8 +361,9 @@ def save_config(conn: sqlite3.Connection, config: AllowanceConfig, withdrawn_liv
             fx_rate_usd_to_cny,
             usd_quantize,
             cny_quantize,
-            rounding_mode
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            rounding_mode,
+            rounding_policy
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         row,
     )
@@ -386,6 +401,7 @@ def config_row_to_model(row: DbConfigRow) -> AllowanceConfig:
         usd_quantize=Decimal(row.usd_quantize),
         cny_quantize=Decimal(row.cny_quantize),
         rounding_mode=row.rounding_mode,
+        rounding_policy=getattr(row, "rounding_policy", "final_only"),
     )
 
 

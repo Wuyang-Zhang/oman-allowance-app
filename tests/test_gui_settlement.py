@@ -1,11 +1,12 @@
 import unittest
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from oma.config import AllowanceConfig
 from oma.gui.settlement import compute_monthly_settlement
 from oma.storage.db import StudentRow
 from oma.models import DegreeLevel, Status
+from oma.utils import proration_fraction, quantize_amount
 
 
 class GuiSettlementTests(unittest.TestCase):
@@ -86,6 +87,7 @@ class GuiSettlementTests(unittest.TestCase):
             usd_quantize=Decimal("0.01"),
             cny_quantize=Decimal("0.01"),
             rounding_mode="ROUND_HALF_UP",
+            rounding_policy="two_step",
         )
         student = StudentRow(
             student_id="S5",
@@ -102,6 +104,65 @@ class GuiSettlementTests(unittest.TestCase):
         living = [r for r in result.records if r.allowance_type.value == "Living"]
         self.assertEqual(living[0].amount.usd, Decimal("100.01"))
         self.assertEqual(living[0].amount.cny, Decimal("712.42"))
+
+    def test_entry_proration_rounding_two_step(self):
+        config = AllowanceConfig(
+            living_allowance_by_degree={DegreeLevel.BACHELOR: Decimal("100.00")},
+            study_allowance_usd=Decimal("0"),
+            baggage_allowance_usd=Decimal("0"),
+            issue_study_if_exit_before_oct_entry_year=False,
+            fx_rate_usd_to_cny=Decimal("7.12345"),
+            usd_quantize=Decimal("0.01"),
+            cny_quantize=Decimal("0.01"),
+            rounding_mode="ROUND_HALF_UP",
+            rounding_policy="two_step",
+        )
+        student = StudentRow(
+            student_id="S6",
+            name="Test",
+            degree_level=DegreeLevel.BACHELOR,
+            first_entry_date=date(2024, 1, 10),
+            status=Status.IN_STUDY,
+            graduation_date=None,
+            withdrawal_date=None,
+        )
+        result = compute_monthly_settlement([student], date(2024, 1, 1), config, [], [])
+        living = [r for r in result.records if r.allowance_type.value == "Living"]
+        fraction = proration_fraction(student.first_entry_date)
+        usd_raw = Decimal("100.00") * fraction
+        usd_q = quantize_amount(usd_raw, Decimal("0.01"), ROUND_HALF_UP)
+        cny_q = quantize_amount(usd_q * config.fx_rate_usd_to_cny, Decimal("0.01"), ROUND_HALF_UP)
+        self.assertEqual(living[0].amount.usd, usd_q)
+        self.assertEqual(living[0].amount.cny, cny_q)
+
+    def test_entry_proration_rounding_final_only(self):
+        config = AllowanceConfig(
+            living_allowance_by_degree={DegreeLevel.BACHELOR: Decimal("100.00")},
+            study_allowance_usd=Decimal("0"),
+            baggage_allowance_usd=Decimal("0"),
+            issue_study_if_exit_before_oct_entry_year=False,
+            fx_rate_usd_to_cny=Decimal("7.12345"),
+            usd_quantize=Decimal("0.01"),
+            cny_quantize=Decimal("0.01"),
+            rounding_mode="ROUND_HALF_UP",
+            rounding_policy="final_only",
+        )
+        student = StudentRow(
+            student_id="S7",
+            name="Test",
+            degree_level=DegreeLevel.BACHELOR,
+            first_entry_date=date(2024, 1, 10),
+            status=Status.IN_STUDY,
+            graduation_date=None,
+            withdrawal_date=None,
+        )
+        result = compute_monthly_settlement([student], date(2024, 1, 1), config, [], [])
+        living = [r for r in result.records if r.allowance_type.value == "Living"]
+        fraction = proration_fraction(student.first_entry_date)
+        usd_raw = Decimal("100.00") * fraction
+        cny_q = quantize_amount(usd_raw * config.fx_rate_usd_to_cny, Decimal("0.01"), ROUND_HALF_UP)
+        self.assertEqual(living[0].amount.usd, usd_raw)
+        self.assertEqual(living[0].amount.cny, cny_q)
 
 
 if __name__ == "__main__":

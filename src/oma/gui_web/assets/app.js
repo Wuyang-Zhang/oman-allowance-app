@@ -94,6 +94,7 @@ function loadTranslations(dict) {
   setText("cfg-study-label", t("config.study"));
   setText("cfg-baggage-label", t("config.baggage"));
   setText("cfg-fx-label", t("config.fx_rate"));
+  setText("cfg-rounding-label", t("config.rounding_policy"));
   setText("cfg-policy-label", t("config.policy"));
   setText("cfg-withdrawn-label", t("config.withdrawn_default"));
   setText("cfg-save", t("config.save"));
@@ -144,6 +145,18 @@ function loadTranslations(dict) {
     option.value = value;
     option.textContent = t(key);
     statusSelect.appendChild(option);
+  });
+
+  const roundingSelect = document.getElementById("cfg-rounding");
+  roundingSelect.innerHTML = "";
+  [
+    { value: "final_only", label: t("config.rounding_final_only") },
+    { value: "two_step", label: t("config.rounding_two_step") }
+  ].forEach(opt => {
+    const option = document.createElement("option");
+    option.value = opt.value;
+    option.textContent = opt.label;
+    roundingSelect.appendChild(option);
   });
 }
 
@@ -455,7 +468,8 @@ function bindEvents() {
       baggage_allowance: document.getElementById("cfg-baggage").value,
       fx_rate: document.getElementById("cfg-fx").value,
       policy_switch: document.getElementById("cfg-policy").checked,
-      withdrawn_default: document.getElementById("cfg-withdrawn-default").checked
+      withdrawn_default: document.getElementById("cfg-withdrawn-default").checked,
+      rounding_policy: document.getElementById("cfg-rounding").value
     };
     await backend.save_config(JSON.stringify(payload));
     document.getElementById("cfg-status").textContent = `${t("config.saved")} ${new Date().toLocaleString()}`;
@@ -561,6 +575,7 @@ async function loadState() {
   document.getElementById("cfg-study").value = state.config.study_allowance_usd;
   document.getElementById("cfg-baggage").value = state.config.baggage_allowance_usd;
   document.getElementById("cfg-fx").value = state.config.fx_rate_usd_to_cny;
+  document.getElementById("cfg-rounding").value = state.config.rounding_policy || "final_only";
   document.getElementById("cfg-policy").checked = !!state.config.issue_study_if_exit_before_oct_entry_year;
   document.getElementById("cfg-withdrawn-default").checked = !!state.config.withdrawn_living_default;
 

@@ -24,6 +24,11 @@
       <h3>{{ t("config.fx_policy") }}</h3>
       <label>{{ t("config.fx_rate") }}</label>
       <input name="fx_rate" value="{{ config.fx_rate_usd_to_cny }}" required />
+      <label>{{ t("config.rounding_policy") }}</label>
+      <select name="rounding_policy">
+        <option value="final_only" {% if config.rounding_policy == "final_only" %}selected{% endif %}>{{ t("config.rounding_final_only") }}</option>
+        <option value="two_step" {% if config.rounding_policy == "two_step" %}selected{% endif %}>{{ t("config.rounding_two_step") }}</option>
+      </select>
       <label>
         <input type="checkbox" name="issue_study_if_exit_before_oct_entry_year" value="1" {% if config.issue_study_if_exit_before_oct_entry_year %}checked{% endif %} />
         {{ t("config.policy") }}
@@ -32,7 +37,7 @@
         <input type="checkbox" name="withdrawn_living_default" value="1" {% if config.withdrawn_living_default %}checked{% endif %} />
         {{ t("config.withdrawn_living_default") }}
       </label>
-      <p>{{ t("config.rounding") }}: <strong>{{ config.rounding_mode }}</strong> ({{ t("config.rounding_fixed") }})</p>
+      <p>{{ t("config.rounding") }}: <strong>{{ config.rounding_mode }}</strong></p>
 
       <div class="actions" style="margin-top: 12px;">
         <button class="btn" type="submit">{{ t("config.action.save") }}</button>

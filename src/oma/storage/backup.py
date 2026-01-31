@@ -123,8 +123,8 @@ def _insert_config(conn: sqlite3.Connection, cfg: Dict) -> None:
         INSERT INTO configs (
             version, updated_at, living_allowance_bachelor, living_allowance_master, living_allowance_phd,
             study_allowance_usd, baggage_allowance_usd, issue_study_if_exit_before_oct_entry_year,
-            withdrawn_living_default, fx_rate_usd_to_cny, usd_quantize, cny_quantize, rounding_mode
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            withdrawn_living_default, fx_rate_usd_to_cny, usd_quantize, cny_quantize, rounding_mode, rounding_policy
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             cfg["version"],
@@ -140,6 +140,7 @@ def _insert_config(conn: sqlite3.Connection, cfg: Dict) -> None:
             cfg["usd_quantize"],
             cfg["cny_quantize"],
             cfg["rounding_mode"],
+            cfg.get("rounding_policy", "final_only"),
         ),
     )
 

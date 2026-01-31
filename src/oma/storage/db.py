@@ -38,6 +38,7 @@ class ConfigRow:
     usd_quantize: str
     cny_quantize: str
     rounding_mode: str
+    rounding_policy: str
 
 
 @dataclass(frozen=True)
@@ -98,7 +99,8 @@ def init_db(conn: sqlite3.Connection) -> None:
             fx_rate_usd_to_cny TEXT NOT NULL,
             usd_quantize TEXT NOT NULL,
             cny_quantize TEXT NOT NULL,
-            rounding_mode TEXT NOT NULL
+            rounding_mode TEXT NOT NULL,
+            rounding_policy TEXT NOT NULL DEFAULT 'final_only'
         );
 
         CREATE TABLE IF NOT EXISTS settlement_runs (
@@ -137,7 +139,16 @@ def init_db(conn: sqlite3.Connection) -> None:
         """
     )
     conn.commit()
+    _ensure_column(conn, "configs", "rounding_policy", "TEXT NOT NULL DEFAULT 'final_only'")
     _ensure_default_config(conn)
+
+
+def _ensure_column(conn: sqlite3.Connection, table: str, column: str, ddl: str) -> None:
+    cur = conn.execute(f"PRAGMA table_info({table})")
+    columns = {row[1] for row in cur.fetchall()}
+    if column not in columns:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+        conn.commit()
 
 
 def _ensure_default_config(conn: sqlite3.Connection) -> None:
@@ -162,6 +173,7 @@ def config_row_to_model(row: ConfigRow) -> AllowanceConfig:
         usd_quantize=Decimal(row.usd_quantize),
         cny_quantize=Decimal(row.cny_quantize),
         rounding_mode=row.rounding_mode,
+        rounding_policy=getattr(row, "rounding_policy", "final_only"),
     )
 
 
@@ -188,6 +200,7 @@ def save_config(conn: sqlite3.Connection, config: AllowanceConfig, withdrawn_liv
         str(config.usd_quantize),
         str(config.cny_quantize),
         str(config.rounding_mode),
+        str(config.rounding_policy),
     )
     cur = conn.execute(
         """
@@ -203,8 +216,9 @@ def save_config(conn: sqlite3.Connection, config: AllowanceConfig, withdrawn_liv
             fx_rate_usd_to_cny,
             usd_quantize,
             cny_quantize,
-            rounding_mode
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            rounding_mode,
+            rounding_policy
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         row,
     )

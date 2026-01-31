@@ -596,6 +596,7 @@ class MainWindow(QMainWindow):
                 usd_quantize=Decimal("0.01"),
                 cny_quantize=Decimal("0.01"),
                 rounding_mode="ROUND_HALF_UP",
+                rounding_policy="final_only",
             )
         except Exception:
             return
