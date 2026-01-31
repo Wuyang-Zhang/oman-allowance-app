@@ -9,7 +9,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from PySide6.QtCore import QEvent, QObject, Qt
+from PySide6.QtCore import QDate, QEvent, QObject, Qt
 from PySide6.QtWidgets import (
     QApplication,
     QAbstractSpinBox,
@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QPushButton,
     QStackedWidget,
+    QSpinBox,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -74,10 +75,62 @@ def configure_date_edit(widget: QDateEdit, display_format: str) -> None:
     widget.setFocusPolicy(Qt.StrongFocus)
     widget.setButtonSymbols(QAbstractSpinBox.UpDownArrows)
     widget.setCursor(Qt.IBeamCursor)
+    today = date.today()
+    min_date = QDate(today.year - 20, 1, 1)
+    max_date = QDate(today.year + 50, 12, 31)
+    widget.setMinimumDate(min_date)
+    widget.setMaximumDate(max_date)
+    calendar = widget.calendarWidget()
+    if calendar:
+        calendar.setDateRange(min_date, max_date)
+        calendar.setNavigationBarVisible(True)
+        calendar.setGridVisible(True)
+        _install_calendar_year_dropdown(calendar, min_date, max_date)
     line = widget.lineEdit()
     if line:
         line.setReadOnly(False)
         line.setFocusPolicy(Qt.StrongFocus)
+
+
+def _install_calendar_year_dropdown(calendar: QWidget, min_date: QDate, max_date: QDate) -> None:
+    nav = calendar.findChild(QWidget, "qt_calendar_navigationbar")
+    year_edit = calendar.findChild(QSpinBox, "qt_calendar_yearedit")
+    if not nav or not year_edit:
+        return
+    if nav.findChild(QComboBox, "oma_year_combo"):
+        return
+
+    combo = QComboBox(nav)
+    combo.setObjectName("oma_year_combo")
+    for year in range(min_date.year(), max_date.year() + 1):
+        combo.addItem(str(year), year)
+
+    layout = nav.layout()
+    year_edit.hide()
+    if layout:
+        index = layout.indexOf(year_edit)
+        if index >= 0:
+            layout.insertWidget(index, combo)
+        else:
+            layout.addWidget(combo)
+    else:
+        combo.setParent(calendar)
+
+    def sync_from_calendar(year: int, month: int) -> None:
+        idx = combo.findData(year)
+        if idx >= 0 and combo.currentIndex() != idx:
+            combo.blockSignals(True)
+            combo.setCurrentIndex(idx)
+            combo.blockSignals(False)
+
+    def on_combo_changed(_: int) -> None:
+        year_value = combo.currentData()
+        if isinstance(year_value, int):
+            calendar.setCurrentPage(year_value, calendar.monthShown())
+
+    combo.currentIndexChanged.connect(on_combo_changed)
+    calendar.currentPageChanged.connect(sync_from_calendar)
+    sync_from_calendar(calendar.yearShown(), calendar.monthShown())
 
 
 class DateDebugFilter(QObject):
@@ -1518,16 +1571,47 @@ def run() -> None:
         }
         QComboBox::drop-down { border: 0; width: 22px; }
         QComboBox::down-arrow { image: none; border: 0; }
+        QDateEdit { padding-right: 34px; }
         QDateEdit::drop-down {
             border-left: 1px solid #d1d5db;
-            width: 26px;
-            background: #f3f4f6;
+            width: 30px;
+            background: #eef1f5;
         }
         QDateEdit::down-arrow {
             image: none;
             border: 0;
         }
-        QDateEdit::drop-down:hover { background: #e5e7eb; }
+        QDateEdit::drop-down:hover { background: #e2e8f0; }
+        QCalendarWidget {
+            background: #ffffff;
+            color: #111827;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+        }
+        QCalendarWidget QToolButton {
+            background: #eef1f5;
+            color: #111827;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 4px 8px;
+        }
+        QCalendarWidget QToolButton:hover { background: #e2e8f0; }
+        QCalendarWidget QToolButton::menu-indicator { image: none; }
+        QCalendarWidget QSpinBox {
+            background: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 2px 6px;
+        }
+        QCalendarWidget QAbstractItemView {
+            selection-background-color: #111827;
+            selection-color: #ffffff;
+            gridline-color: #e5e7eb;
+        }
+        QCalendarWidget QAbstractItemView::item:selected {
+            background: #111827;
+            color: #ffffff;
+        }
         QPushButton { border-radius: 8px; padding: 6px 12px; }
         QPushButton[variant="primary"] { background: #111827; color: #ffffff; border: 1px solid #111827; }
         QPushButton[variant="secondary"] { background: #ffffff; color: #111827; border: 1px solid #d1d5db; }
